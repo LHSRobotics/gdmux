@@ -10,6 +10,8 @@ import (
 )
 
 var (
+	armPort  = flag.String("arm", "/dev/ttyS0", "serial file to talk to the staubli's console")
+	extruderPort  = flag.String("extruder", "/dev/ttyS1", "serial file to talk to the extruder's firmware")
 	addr  = flag.String("addr", "127.0.0.1:5000", "tcp address on which to listen")
 	stdin = flag.Bool("stdin", false, "read a gcode file from stdin")
 	verbose = flag.Bool("verbose", false, "print lots output")
@@ -29,6 +31,10 @@ func (c *Cmd) move() {
 	if *verbose {
 		log.Println("move stub")
 	}
+	// This is where the move command happend. Before we do this we kinda need a rough skech of
+	// how the interfaces to the arm and extruder are going to look like.
+	// Most likely, the arm and extruder would each be handled by a goroutine each, and we'll
+	// communicate with from from methods like this one over channels.
 }
 
 func (c *Cmd) Exec() {

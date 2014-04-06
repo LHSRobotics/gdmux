@@ -7,13 +7,10 @@ import (
 	"unicode"
 )
 
-type Word struct {
-	Type    rune
-	Content string
-}
+type Code string
 
 type Line struct {
-	Words   []Word
+	Codes   []Code
 	Comment string
 }
 
@@ -76,11 +73,7 @@ func line(t string) *Line {
 				}
 				end++
 			}
-			w := Word{
-				Type: unicode.ToUpper(rune(b)),
-				Content: t[pos:end],
-			}
-			l.Words = append(l.Words, w)
+			l.Codes = append(l.Codes, Code(t[pos:end]))
 			pos = end
 		default:
 			log.Printf("couldn't parse line: %v %v", b, t)

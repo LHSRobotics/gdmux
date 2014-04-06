@@ -2,42 +2,108 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"net"
 	"os"
+	"strconv"
 )
 
 var (
 	addr  = flag.String("addr", "127.0.0.1:5000", "tcp address on which to listen")
 	stdin = flag.Bool("stdin", false, "read a gcode file from stdin")
+	verbose = flag.Bool("verbose", false, "print lots output")
 )
+
+type Cmd struct {
+	// TODO these variables are stateful. Maybe we should add a way to tell if they've
+	// been set in this line or inhereted from the previous line?
+
+	x, y, z, e, f float64 // TODO perhaps this should be a map?
+	ops           []func()
+	inches        bool
+	line          *Line
+}
+
+func (c *Cmd) move() {
+	if *verbose {
+		log.Println("move stub")
+	}
+}
+
+func (c *Cmd) Exec() {
+	if *verbose {
+		log.Printf("executing line %v", c.line)
+	}
+	
+	for _, op := range c.ops {
+		op()
+	}
+}
+
+// SetVar parses a variable-setting code, such as X, Y, or E.
+func (c *Cmd) SetVar(code Code) {
+	f, err := strconv.ParseFloat(string(code[1:]), 32)
+	if err != nil {
+		// TODO return this error instead of panicing
+		log.Fatal("couldn't parse float value")
+	}
+
+	switch code[0] {
+	case 'X':
+		c.x = f
+	case 'Y':
+		c.y = f
+	case 'Z':
+		c.z = f
+	case 'E':
+		c.e = f
+	case 'F':
+		c.f = f
+	default:
+		log.Printf("unknown class: %v", c) // should return an error here instead
+	}
+}
+
+// AddOp parses and adds an G- or M-code to the operation queue.
+func (c *Cmd) AddOp(code Code) {
+	switch code {
+	case "G1":
+		c.ops = append(c.ops, c.move)
+	case "G21":
+		c.inches = false
+	case "M107":
+		log.Printf("ignoring: fanoff M107.")
+	case "M103":
+	case "M101":
+	default:
+		log.Printf("unknown code: %v", code) // should return an error here instead
+	}
+}
 
 func dmux(read io.Reader) {
 	r := NewParser(read)
+	cmd := Cmd{}
 	for {
-		line, err := r.Next()
+		var err error
+		cmd.line, err = r.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
 			log.Println("parse error: %v", err)
 		}
 
-		if len(line.Words) == 0 {
-			continue
+		for _, c := range cmd.line.Codes {
+			switch c[0] {
+			case 'G', 'M':
+				cmd.AddOp(c)
+			case 'X', 'Y', 'Z', 'E', 'F':
+				cmd.SetVar(c)
+			default:
+				log.Printf("unknown code class: %v (%v)", c, cmd.line)
+			}
 		}
-
-		switch line.Words[0].Content {
-		case "G21":
-			fmt.Printf(" mm ")
-		case "G1":
-			fmt.Printf("g1, ")
-		case "M107":
-			fmt.Printf(" Msomething ")
-		default:
-			log.Printf("unknown gcode: %v (%v)",line.Words[0].Content, line)
-		}
+		cmd.Exec()
 	}
 }
 
@@ -59,11 +125,10 @@ func listen() {
 
 func main() {
 	flag.Parse()
-	if *stdin {
-		log.Println("reading from stdin")
-		dmux(os.Stdin)
-		return
+	if !*stdin {
+		listen()
 	}
 
-	listen()
+	log.Println("reading from stdin")
+	dmux(os.Stdin)
 }

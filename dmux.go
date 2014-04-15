@@ -112,6 +112,7 @@ func dmux(read io.Reader) {
 			}
 		}
 		cmd.Exec()
+		cmd.ops = cmd.ops[:0]
 	}
 }
 

@@ -10,18 +10,22 @@ import (
 )
 
 var (
-	armPort  = flag.String("arm", "/dev/ttyS0", "serial file to talk to the staubli's console")
+	// armPort is the serial file connected to the arm controller's data line. For the Staubli
+	// its baudrate 38400, we assume that's already set for the device file. (I.e. with stty.)
+	armPort  = flag.String("arm", "/dev/ttyUSB0", "serial file to talk to the staubli's console")
 	extruderPort  = flag.String("extruder", "/dev/ttyS1", "serial file to talk to the extruder's firmware")
 	addr  = flag.String("addr", "127.0.0.1:5000", "tcp address on which to listen")
 	stdin = flag.Bool("stdin", false, "read a gcode file from stdin")
 	verbose = flag.Bool("verbose", false, "print lots output")
+	
+	armc = make(chan armMsg)
 )
 
 type Cmd struct {
 	// TODO these variables are stateful. Maybe we should add a way to tell if they've
 	// been set in this line or inhereted from the previous line?
 
-	x, y, z, e, f float64 // TODO perhaps this should be a map?
+	x, y, z, e, f float64 // TODO perhaps this should be a map? Also, perhaps keep it as string?
 	ops           []func()
 	inches        bool
 	line          *Line
@@ -29,12 +33,10 @@ type Cmd struct {
 
 func (c *Cmd) move() {
 	if *verbose {
-		log.Println("move stub")
+		log.Println("moving arm")
 	}
-	// This is where the move command happend. Before we do this we kinda need a rough skech of
-	// how the interfaces to the arm and extruder are going to look like.
-	// Most likely, the arm and extruder would each be handled by a goroutine each, and we'll
-	// communicate with from from methods like this one over channels.
+	
+	armc <- armMsg{c.x, c.y, c.z}
 }
 
 func (c *Cmd) Exec() {
@@ -131,6 +133,9 @@ func listen() {
 
 func main() {
 	flag.Parse()
+	
+	go armCtl() // Launch the arm controlling goroutine. We talk to this using armc.
+	
 	if !*stdin {
 		listen()
 	}

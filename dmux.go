@@ -12,12 +12,12 @@ import (
 var (
 	// armPort is the serial file connected to the arm controller's data line. For the Staubli
 	// its baudrate 38400, we assume that's already set for the device file. (I.e. with stty.)
-	armPort  = flag.String("arm", "/dev/ttyUSB0", "serial file to talk to the staubli's console")
-	extruderPort  = flag.String("extruder", "/dev/ttyS1", "serial file to talk to the extruder's firmware")
-	addr  = flag.String("addr", "127.0.0.1:5000", "tcp address on which to listen")
-	stdin = flag.Bool("stdin", false, "read a gcode file from stdin")
-	verbose = flag.Bool("verbose", false, "print lots output")
-	
+	armPort      = flag.String("arm", "/dev/ttyUSB0", "serial file to talk to the staubli's console")
+	extruderPort = flag.String("extruder", "/dev/ttyS1", "serial file to talk to the extruder's firmware")
+	addr         = flag.String("addr", "127.0.0.1:5000", "tcp address on which to listen")
+	stdin        = flag.Bool("stdin", false, "read a gcode file from stdin")
+	verbose      = flag.Bool("verbose", false, "print lots output")
+
 	armc = make(chan armMsg)
 )
 
@@ -35,7 +35,7 @@ func (c *Cmd) move() {
 	if *verbose {
 		log.Println("moving arm")
 	}
-	
+
 	armc <- armMsg{c.x, c.y, c.z}
 }
 
@@ -43,7 +43,7 @@ func (c *Cmd) Exec() {
 	if *verbose {
 		log.Printf("executing line %v", c.line)
 	}
-	
+
 	for _, op := range c.ops {
 		op()
 	}
@@ -134,9 +134,9 @@ func listen() {
 
 func main() {
 	flag.Parse()
-	
+
 	go armCtl() // Launch the arm controlling goroutine. We talk to this using armc.
-	
+
 	if !*stdin {
 		listen()
 	}

@@ -1,35 +1,49 @@
 package main
 
 import (
-	"os"
-	"log"
 	"fmt"
+	"io"
+	"log"
+	"strings"
+
+	"github.com/tarm/goserial"
 )
 
 type armMsg struct {
 	X, Y, Z float64
 }
 
-// armCtl handles communication with the Staubli arm for us. For each move, we output the coordinates
-// separated by spaces. This is easy to parse in V+ using READ.
-func armCtl() {
-	f, err := os.OpenFile(*armPort, os.O_RDWR, 0)
-	if err != nil {
-		log.Fatal("couldn't open Arm file", err)
-	}
-	buf := make([]byte, 100)
-	
+func armReader(c chan string, r io.Reader) {
+	buf := make([]byte, 255)
 	for {
-		msg := <-armc
-		fmt.Printf("Sending: %f %f %f\n", msg.X, msg.Y, msg.Z)
-		_, err = fmt.Fprintf(f, "%f %f %f\n", msg.X, msg.Y, msg.Z)
-		if err != nil {
-			log.Println("error sending coordinates to arm: ", err)
-		}
-		_, err =  f.Read(buf)
+		_, err := r.Read(buf)
 		if err != nil {
 			log.Println("error reading ack from arm: ", err)
 		}
-		fmt.Printf("Got: %v\n", string(buf))
+		c <- strings.TrimSpace(string(buf))
 	}
+}
+
+// armCtl handles communication with the Staubli arm for us. For each move, we output the coordinates
+// separated by spaces. This is easy to parse in V+ using READ.
+func armCtl() {
+	c := &serial.Config{Name: *armPort, Baud: 38400}
+	s, err := serial.OpenPort(c)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	feedback := make(chan string)
+	go armReader(feedback, s)
+	//fmt.Printf("Staubli says: %s", <-feedback)
+ 
+	for {
+		msg := <-armc
+			fmt.Printf("%.2f		%.2f		%.2f", msg.X, msg.Y, msg.Z)
+			_, err = fmt.Fprintf(s, "%f %f %f\r\n", msg.X, msg.Y, msg.Z)
+			if err != nil {
+				log.Println("error sending coordinates to arm: ", err)
+			}
+			fmt.Printf("	→ %s", <-feedback)
+		}
 }

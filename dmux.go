@@ -5,8 +5,10 @@ import (
 	"io"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -16,7 +18,12 @@ var (
 	extruderPort = flag.String("extruder", "/dev/ttyS1", "serial file to talk to the extruder's firmware")
 	addr         = flag.String("addr", "127.0.0.1:5000", "tcp address on which to listen")
 	stdin        = flag.Bool("stdin", false, "read a gcode file from stdin")
+	tcp          = flag.Bool("tcp", false, "listen on tcp for gcode")
 	verbose      = flag.Bool("verbose", false, "print lots output")
+
+	dataRoot = flag.String("data",
+		strings.Split(os.Getenv("GOPATH"), ":")[0]+"/src/github.com/LHSRobotics/gdmux/ui",
+		"html directory")
 
 	armc = make(chan armMsg)
 )
@@ -89,10 +96,17 @@ func (c *Cmd) AddOp(code Code) {
 	}
 }
 
-func dmux(read io.Reader) {
+func dmux(read io.Reader, stop chan bool) {
 	r := NewParser(read)
 	cmd := Cmd{}
 	for {
+		select {
+		case <-stop:
+			log.Println("dmux stopping")
+			return
+		default:
+		}
+
 		var err error
 		cmd.line, err = r.Next()
 		if err == io.EOF {
@@ -128,8 +142,28 @@ func listen() {
 			continue
 		}
 		log.Println("accepted connection:", err)
-		go dmux(conn)
+		go dmux(conn, make(chan bool))
 	}
+}
+
+var stopc = make(chan bool)
+var running = false
+
+func handleRun(w http.ResponseWriter, r *http.Request) {
+	running = true
+	log.Println("running some gcode!")
+	dmux(r.Body, stopc)
+}
+
+func handleStop(w http.ResponseWriter, r *http.Request) {
+	// Racy. Needs lock.
+	log.Println("got stop")
+	if running {
+		log.Println("stopping")
+		stopc <- true
+	}
+	log.Println("stopped")
+	running = false
 }
 
 func main() {
@@ -137,10 +171,19 @@ func main() {
 
 	go armCtl() // Launch the arm controlling goroutine. We talk to this using armc.
 
-	if !*stdin {
-		listen()
+	if *stdin {
+		log.Println("reading from stdin")
+		dmux(os.Stdin, make(chan bool))
+		os.Exit(0)
 	}
 
-	log.Println("reading from stdin")
-	dmux(os.Stdin)
+	if *tcp {
+		listen()
+		os.Exit(0)
+	}
+
+	http.HandleFunc("/run", handleRun)
+	http.HandleFunc("/stop", handleStop)
+	http.Handle("/", http.FileServer(http.Dir(*dataRoot)))
+	log.Fatal(http.ListenAndServe(*addr, nil))
 }

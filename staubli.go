@@ -16,11 +16,11 @@ type armMsg struct {
 func armReader(c chan string, r io.Reader) {
 	buf := make([]byte, 255)
 	for {
-		_, err := r.Read(buf)
+		n, err := r.Read(buf)
 		if err != nil {
 			log.Println("error reading ack from arm: ", err)
 		}
-		c <- strings.TrimSpace(string(buf))
+		c <- strings.TrimSpace(string(buf[:n]))
 	}
 }
 
@@ -36,14 +36,14 @@ func armCtl() {
 	feedback := make(chan string)
 	go armReader(feedback, s)
 	//fmt.Printf("Staubli says: %s", <-feedback)
- 
+
 	for {
 		msg := <-armc
-			fmt.Printf("%.2f		%.2f		%.2f", msg.X, msg.Y, msg.Z)
-			_, err = fmt.Fprintf(s, "%f %f %f\r\n", msg.X, msg.Y, msg.Z)
-			if err != nil {
-				log.Println("error sending coordinates to arm: ", err)
-			}
-			fmt.Printf("	→ %s", <-feedback)
+		fmt.Printf("%8.2f %8.2f %8.2f", msg.X, msg.Y, msg.Z)
+		_, err = fmt.Fprintf(s, "%f %f %f\r\n", msg.X, msg.Y, msg.Z)
+		if err != nil {
+			log.Println("error sending coordinates to arm: ", err)
 		}
+		fmt.Printf("    → %s\n", <-feedback)
+	}
 }

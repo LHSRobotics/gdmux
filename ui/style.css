@@ -1,0 +1,239 @@
+/*
+
+Based on the "Dive Into HTML 5" stylesheet by Mark Pilgrim. Thanks, Mark.
+
+Copyright (c) 2009, Mark Pilgrim, All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+*/
+
+@font-face {
+	font-family: GentiumPlus;
+	src: url('f/GentiumPlus-R.woff') format('woff'),
+		url('f/GentiumPlus-R.ttf') format('truetype');
+}
+@font-face {
+	font-family: GentiumPlus;
+	font-style: italic;
+	src: url('f/GentiumPlus-I.woff') format('woff'),
+		url('f/GentiumPlus-I.ttf') format('truetype');
+}
+@font-face {
+	font-family: 'Amiri';
+	src: url('f/amiri-regular.woff') format('woff'),
+		url('f/amiri-regular.ttf') format('truetype');
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Scheherazade';
+	src: url('f/Scheherazade-R.woff') format('woff'),
+		url('f/Scheherazade-R.ttf') format('truetype');
+	font-style: normal;
+}
+
+.rtl {
+	direction: rtl;
+}
+
+html {
+	overflow-y: scroll;
+	height: 100%
+}
+
+body {
+	font: small/1.556 GentiumPlus, Amiri, serif;
+	max-width: 40em;
+	margin: auto;
+	padding: 1em;
+	background: #fff;
+	color: #000;
+}
+
+.idx {
+	max-width: 28em;
+	text-align: justify;
+}
+
+.ar {
+	font-size: 1.2em
+}
+
+pre, kbd, samp, code, var {
+  font: small Inconsolata, monospace;
+  word-spacing: 0;
+  letter-spacing: 0;
+}
+
+.clear {
+  clear: both;
+}
+.c, .a, form div {
+  clear: both;
+  text-align: center;
+  margin: 0;
+}
+.a {
+	font-size: 1.4em;
+	margin: 0.8em auto;
+}
+
+/* links */
+
+a {
+  text-decoration: none;
+}
+a:link {
+  color: FireBrick;
+  border-bottom: 1px dotted;
+}
+a:visited {
+  color: RosyBrown;
+  border-bottom: 1px dotted;
+}
+a:link:hover, a:visited:hover {
+  border-bottom: 1px solid;
+}
+.c a {
+  color: inherit;
+}
+
+/* code blocks */
+
+pre {
+  padding-left: 3.5em;
+  white-space: pre; /* CSS2 */
+  white-space: pre-wrap; /* CSS 2.1 */
+  word-wrap: break-word; /* IE */
+}
+pre.ib {
+  padding: 0;
+}
+mark {
+  display: inline-block;
+  background: #ff8;
+  border: 1px dotted #888;
+}
+
+/* overrides */
+
+li ol, .q, .v span {
+  margin: 0;
+}
+code, var, samp {
+  line-height:inherit !important;
+}
+
+/* headers */
+
+h1, h2, h3, h4, caption, thead th {
+  font-weight: normal;
+  font-variant: small-caps;
+  text-shadow: 0 0 1px #667;
+}
+strong {
+  text-transform: uppercase;
+}
+h1 {
+  font-size: 1.7em;
+  line-height: 1;
+  text-align: center;
+  margin-bottom: 0.1em;
+  width: 100%;
+}
+h2 {
+  font-size:1.6em;
+  line-height: 1;
+  margin-bottom: 0.1em;
+}
+h3 {
+  font-size: 1.1em;
+  line-height: 1;
+  margin-bottom: 0.1em;
+}
+
+/* video */
+video {
+  display: block;
+  margin: 0 auto;
+}
+
+.menu {
+  margin: 0 1.5em;
+  padding: 0;
+}
+.menu li {
+	display: inline;
+}
+.menu li:after {content: " · ";}
+.menu li:last-child:after {content: "";}
+
+.date {
+	display: inline-block;
+	float: right;
+}
+.rtl .date {
+	float: left;
+}
+
+
+header {
+	text-align: center;
+	margin: 0.5em auto;
+}
+
+footer {
+	font-size: x-small;
+	text-align: center;
+}
+
+.source {
+	font-size:xx-small;
+	vertical-align:sub;
+}
+
+article img {
+	width: 100%;
+}
+
+article {
+	margin: 1em;
+}
+hr {
+	font-size: 2em;
+	border-style: none;
+	height: 2em;
+	text-align: center;
+}
+hr:after {
+	content: "۞";
+	font-family: 'Scheherazade';
+	display:inline;
+}
+hr.ivy:after {
+	content: "❧";
+}
+
+textarea {
+	width: 100%;
+	height: 20em;
+}

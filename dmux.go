@@ -46,6 +46,14 @@ func (c *Cmd) move() {
 	armc <- armMsg{c.x, c.y, c.z}
 }
 
+func (c *Cmd) moveStraight() {
+	if *verbose {
+		log.Println("moving arm")
+	}
+
+	armc <- armMsg{c.x, c.y, c.z}
+}
+
 func (c *Cmd) Exec() {
 	if *verbose {
 		log.Printf("executing line %v", c.line)
@@ -83,8 +91,10 @@ func (c *Cmd) SetVar(code Code) {
 // AddOp parses and adds an G- or M-code to the operation queue.
 func (c *Cmd) AddOp(code Code) {
 	switch code {
-	case "G1":
+	case "G0":
 		c.ops = append(c.ops, c.move)
+	case "G1":
+		c.ops = append(c.ops, c.moveStraight)
 	case "G21":
 		c.inches = false
 	case "M107":

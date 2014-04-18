@@ -27,7 +27,7 @@ func armReader(c chan string, r io.Reader) {
 // armCtl handles communication with the Staubli arm for us. For each move, we output the coordinates
 // separated by spaces. This is easy to parse in V+ using READ.
 func armCtl() {
-	c := &serial.Config{Name: *armPort, Baud: 38400}
+	c := &serial.Config{Name: *armFile, Baud: 38400}
 	s, err := serial.OpenPort(c)
 	if err != nil {
 		log.Fatal(err)
@@ -35,7 +35,6 @@ func armCtl() {
 
 	feedback := make(chan string)
 	go armReader(feedback, s)
-	//fmt.Printf("Staubli says: %s", <-feedback)
 
 	for {
 		msg := <-armc

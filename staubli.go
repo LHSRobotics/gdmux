@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"strings"
+
+	"github.com/tarm/goserial"
 )
 
 type armMsg struct {
@@ -26,9 +27,8 @@ func armReader(c chan string, r io.Reader) {
 // armCtl handles communication with the Staubli arm for us. For each move, we output the coordinates
 // separated by spaces. This is easy to parse in V+ using READ.
 func armCtl() {
-	/*c := &serial.Config{Name: *armFile, Baud: 38400}
-	s, err := serial.OpenPort(c)*/
-	s, err := os.Open("/dev/null")
+	c := &serial.Config{Name: *armFile, Baud: 38400}
+	s, err := serial.OpenPort(c)
 	if err != nil {
 		log.Fatal(err)
 	}

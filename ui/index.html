@@ -26,15 +26,18 @@ G1 Y210 Z230
 G1 Y200 Z200
 
 G1 X0 Y0 Z0
- </textarea>
+</textarea>
+
+<textarea readonly id="log">
+</textarea>
 
 <footer>
-Copycentre Salmān Aljammāz
+Copycentre <a href="http://hack.rs/">LHS</a>
 </footer>
 
 <script>
-
 code = document.getElementById("code");
+log = document.getElementById("log");
 
 document.getElementById("run").onclick = function() {
 	var request = new XMLHttpRequest();
@@ -48,5 +51,12 @@ document.getElementById("stop").onclick = function() {
 	request.open('POST', '/stop', true);
 	request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
 	request.send();
+};
+
+var s = new WebSocket('ws://' + location.host + '/log');
+s.onmessage = function(m) {
+	var msg = JSON.parse(m.data);
+	console.log(msg);
+	log.innerHTML = log.innerHTML + msg
 };
 </script>

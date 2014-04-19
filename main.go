@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"net/http"
@@ -121,10 +120,8 @@ func handleLog(ws *websocket.Conn) {
 	enc := json.NewEncoder(ws)
 	for {
 		err := enc.Encode(<-msgc)
-		if err == io.EOF {
+		if err != nil {
 			break
-		} else if err != nil {
-			log.Println("websocket error:", err, ws.LocalAddr())
 		}
 	}
 }

@@ -71,13 +71,6 @@ func dmux(read io.Reader, stop chan bool) {
 	r := gcode.NewParser(read)
 	cmd := Cmd{}
 	for {
-		select {
-		case <-stop:
-			log.Println("dmux stopping")
-			return
-		default:
-		}
-
 		var err error
 		cmd.line, err = r.Next()
 		if err == io.EOF {

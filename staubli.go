@@ -51,11 +51,11 @@ func (s *Staubli) MoveStraight(x, y, z float64) {
 }
 
 func (s *Staubli) readReply() string {
-		n, err := s.rw.Read(s.buf)
-		if err != nil {
-			log.Println("error reading ack from arm: ", err)
-		}
-		return strings.TrimSpace(string(s.buf[:n]))
+	n, err := s.rw.Read(s.buf)
+	if err != nil {
+		log.Println("error reading ack from arm: ", err)
+	}
+	return strings.TrimSpace(string(s.buf[:n]))
 }
 
 func NewStaubli(serialPort string) *Staubli {
@@ -65,5 +65,5 @@ func NewStaubli(serialPort string) *Staubli {
 	}
 
 	return &Staubli{rw: s,
-	buf : make([]byte, 255)}
+		buf: make([]byte, 255)}
 }

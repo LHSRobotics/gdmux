@@ -76,7 +76,9 @@ func dmux(read io.Reader, stop chan bool) {
 		if err == io.EOF {
 			break
 		} else if err != nil {
+			// TODO probably better to pause on errors
 			log.Println("parse error: %v", err)
+			continue
 		}
 
 		for _, c := range cmd.line.Codes {

@@ -51,6 +51,8 @@ func line(t string) (*Line, error) {
 			pos++
 		case b == ';': // ;-style comment
 			return &l, nil
+		case b == '#': // #-style comment
+			return &l, nil
 		case b == '(': // ()-style comment
 			end := pos + 1
 			for end < len(t) {

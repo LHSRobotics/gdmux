@@ -18,6 +18,7 @@ type Arm interface {
 type Staubli struct {
 	rw io.ReadWriter
 	sync.Mutex
+	buf []byte
 }
 
 func (s *Staubli) Move(x, y, z float64) {
@@ -32,6 +33,7 @@ func (s *Staubli) Move(x, y, z float64) {
 	if err != nil {
 		log.Println("error sending coordinates to arm: ", err)
 	}
+	weblog(fmt.Sprintf(" → %s\n", s.readReply()))
 }
 
 func (s *Staubli) MoveStraight(x, y, z float64) {
@@ -45,6 +47,15 @@ func (s *Staubli) MoveStraight(x, y, z float64) {
 	if err != nil {
 		log.Println("error sending coordinates to arm: ", err)
 	}
+	weblog(fmt.Sprintf(" → %s\n", s.readReply()))
+}
+
+func (s *Staubli) readReply() string {
+		n, err := s.rw.Read(s.buf)
+		if err != nil {
+			log.Println("error reading ack from arm: ", err)
+		}
+		return strings.TrimSpace(string(s.buf[:n]))
 }
 
 func NewStaubli(serialPort string) *Staubli {
@@ -53,18 +64,6 @@ func NewStaubli(serialPort string) *Staubli {
 		log.Fatal(err)
 	}
 
-	go armReader(s)
-
-	return &Staubli{rw: s}
-}
-
-func armReader(r io.Reader) {
-	buf := make([]byte, 255)
-	for {
-		n, err := r.Read(buf)
-		if err != nil {
-			log.Println("error reading ack from arm: ", err)
-		}
-		weblog(fmt.Sprintf(" → %s\n", strings.TrimSpace(string(buf[:n]))))
-	}
+	return &Staubli{rw: s,
+	buf : make([]byte, 255)}
 }

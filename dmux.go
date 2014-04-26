@@ -70,6 +70,7 @@ func (c *Cmd) AddOp(code gcode.Code) {
 func dmux(read io.Reader, stop chan bool) {
 	r := gcode.NewParser(read)
 	cmd := Cmd{}
+	n := 1
 	for {
 		var err error
 		cmd.line, err = r.Next()
@@ -95,7 +96,9 @@ func dmux(read io.Reader, stop chan bool) {
 		if !running {
 			return
 		}
+		weblog(fmt.Sprintf("Executing line %n: %s", n, cmd.line.Text))
 		cmd.Exec()
 		cmd.ops = cmd.ops[:0]
+		n++
 	}
 }

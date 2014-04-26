@@ -11,3 +11,7 @@ This keeps things nice and simple.
 For the Go parts, everything should work with `go get`. Run `go get github.com/LHSRobotics/gdmux` and gdmux will be installed in your Go bin directory.
 
 For the V+ parts, refer to your trustly V+ manual.
+
+## Testing
+
+To test the command and packages, run `go test ./...`.

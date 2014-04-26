@@ -1,9 +1,9 @@
-package main
+package gcode
 
 import (
 	"bufio"
 	"io"
-	"log"
+	"fmt"
 	"unicode"
 )
 
@@ -32,10 +32,10 @@ func (p *Parser) Next() (*Line, error) {
 		return nil, io.EOF
 	}
 
-	return line(p.scan.Text()), nil
+	return line(p.scan.Text())
 }
 
-func line(t string) *Line {
+func line(t string) (*Line, error) {
 	l := Line{}
 	pos := 0
 
@@ -44,12 +44,13 @@ func line(t string) *Line {
 		case unicode.IsSpace(rune(b)):
 			pos++
 		case b == ';': // ;-style comment
-			return &l
+			return &l, nil
 		case b == '(': // ()-style comment
 			end := pos + 1
 			for end < len(t) {
 				if t[end] == ')' {
 					l.Comment = t[pos:end]
+					end++
 					break
 				}
 				end++
@@ -76,9 +77,8 @@ func line(t string) *Line {
 			l.Codes = append(l.Codes, Code(t[pos:end]))
 			pos = end
 		default:
-			log.Printf("couldn't parse line: %v %v", b, t)
-			return nil
+			return nil, fmt.Errorf("couldn't parse line: %c %v", b, t)
 		}
 	}
-	return &l
+	return &l, nil
 }

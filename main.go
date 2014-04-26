@@ -26,7 +26,7 @@ var (
 		strings.Split(os.Getenv("GOPATH"), ":")[0]+"/src/github.com/LHSRobotics/gdmux/ui",
 		"html directory")
 
-	armc  = make(chan armMsg)
+	arm   Arm
 	stopc = make(chan bool)
 
 	running = false
@@ -48,7 +48,7 @@ func listen() {
 	}
 }
 
-var armLock = sync.Mutex{}
+var sessionLock = sync.Mutex{}
 
 func handleRun(w http.ResponseWriter, r *http.Request) {
 	// TODO: communicate the running state to js, so the right buttons get enabled/disabled.
@@ -57,23 +57,20 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	weblog(fmt.Sprintf("Got run request from %s\n", r.RemoteAddr))
-	armLock.Lock()
+	sessionLock.Lock()
 	running = true
 	weblog("RUNNING GCODE!\n")
 	dmux(r.Body, stopc)
 	running = false
-	armLock.Unlock()
+	sessionLock.Unlock()
 	weblog("Done.\n")
 }
 
 func handleStop(w http.ResponseWriter, r *http.Request) {
 	if running {
 		weblog(fmt.Sprintf("Got stop request from %s\n", r.RemoteAddr))
-		stopc <- true
+		running = false
 		weblog("Stopped sending Gcode\n")
-		// These should be handled by handleRun
-		//running = false
-		//armLock.Unock()
 	} else {
 		weblog(fmt.Sprintf("Got stop request from %s, but the arm isn't running.\n", r.RemoteAddr))
 	}
@@ -132,7 +129,7 @@ func main() {
 	clients.m = make(map[chan string]bool)
 	go logger()
 
-	go armCtl() // Launch the arm controlling goroutine. We talk to this using armc.
+	arm = NewStaubli(*armFile)
 
 	if *stdin {
 		log.Println("reading from stdin")

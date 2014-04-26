@@ -5,44 +5,66 @@ import (
 	"io"
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/tarm/goserial"
 )
 
-type armMsg struct {
-	X, Y, Z float64
+type Arm interface {
+	Move(x, y, z float64)
+	MoveStraight(x, y, z float64)
 }
 
-func armReader(c chan string, r io.Reader) {
+type Staubli struct {
+	rw io.ReadWriter
+	sync.Mutex
+}
+
+func (s *Staubli) Move(x, y, z float64) {
+	if *verbose {
+		log.Printf("moving arm to %f, %f, %f", x, y, z)
+	}
+
+	weblog(fmt.Sprintf("%8.2f %8.2f %8.2f", x, y, z))
+
+	// we probably need a lock here...
+	_, err := fmt.Fprintf(s.rw, "%f %f %f\r\n", x, y, z)
+	if err != nil {
+		log.Println("error sending coordinates to arm: ", err)
+	}
+}
+
+func (s *Staubli) MoveStraight(x, y, z float64) {
+	if *verbose {
+		log.Printf("straight moving arm to %f, %f, %f", x, y, z)
+	}
+
+	weblog(fmt.Sprintf("%8.2f %8.2f %8.2f", x, y, z))
+
+	_, err := fmt.Fprintf(s.rw, "%f %f %f\r\n", x, y, z)
+	if err != nil {
+		log.Println("error sending coordinates to arm: ", err)
+	}
+}
+
+func NewStaubli(serialPort string) *Staubli {
+	s, err := serial.OpenPort(&serial.Config{Name: serialPort, Baud: 38400})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	go armReader(s)
+
+	return &Staubli{rw: s}
+}
+
+func armReader(r io.Reader) {
 	buf := make([]byte, 255)
 	for {
 		n, err := r.Read(buf)
 		if err != nil {
 			log.Println("error reading ack from arm: ", err)
 		}
-		c <- strings.TrimSpace(string(buf[:n]))
-	}
-}
-
-// armCtl handles communication with the Staubli arm for us. For each move, we output the coordinates
-// separated by spaces. This is easy to parse in V+ using READ.
-func armCtl() {
-	c := &serial.Config{Name: *armFile, Baud: 38400}
-	s, err := serial.OpenPort(c)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	feedback := make(chan string)
-	go armReader(feedback, s)
-
-	for {
-		msg := <-armc
-		weblog(fmt.Sprintf("%8.2f %8.2f %8.2f", msg.X, msg.Y, msg.Z))
-		_, err = fmt.Fprintf(s, "%f %f %f\r\n", msg.X, msg.Y, msg.Z)
-		if err != nil {
-			log.Println("error sending coordinates to arm: ", err)
-		}
-		weblog(fmt.Sprintf("    → %s\n", <-feedback))
+		weblog(fmt.Sprintf(" → %s\n", strings.TrimSpace(string(buf[:n]))))
 	}
 }

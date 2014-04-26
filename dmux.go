@@ -4,32 +4,15 @@ import (
 	"io"
 	"log"
 	"strconv"
+
+	"github.com/LHSRobotics/gdmux/gcode"
 )
 
 type Cmd struct {
-	// TODO these variables are stateful. Maybe we should add a way to tell if they've
-	// been set in this line or inhereted from the previous line?
-
 	x, y, z, e, f float64 // TODO perhaps this should be a map? Also, perhaps keep it as string?
-	ops           []func()
+	ops           []func(c *Cmd)
 	inches        bool
-	line          *Line
-}
-
-func (c *Cmd) move() {
-	if *verbose {
-		log.Println("moving arm")
-	}
-
-	armc <- armMsg{c.x, c.y, c.z}
-}
-
-func (c *Cmd) moveStraight() {
-	if *verbose {
-		log.Println("moving arm")
-	}
-
-	armc <- armMsg{c.x, c.y, c.z}
+	line          *gcode.Line
 }
 
 func (c *Cmd) Exec() {
@@ -38,12 +21,12 @@ func (c *Cmd) Exec() {
 	}
 
 	for _, op := range c.ops {
-		op()
+		op(c)
 	}
 }
 
 // SetVar parses a variable-setting code, such as X, Y, or E.
-func (c *Cmd) SetVar(code Code) {
+func (c *Cmd) SetVar(code gcode.Code) {
 	f, err := strconv.ParseFloat(string(code[1:]), 32)
 	if err != nil {
 		// TODO return this error instead of panicing
@@ -67,12 +50,12 @@ func (c *Cmd) SetVar(code Code) {
 }
 
 // AddOp parses and adds an G- or M-code to the operation queue.
-func (c *Cmd) AddOp(code Code) {
+func (c *Cmd) AddOp(code gcode.Code) {
 	switch code {
 	case "G0":
-		c.ops = append(c.ops, c.move)
+		c.ops = append(c.ops, func(c *Cmd) { arm.Move(c.x, c.y, c.z) })
 	case "G1":
-		c.ops = append(c.ops, c.moveStraight)
+		c.ops = append(c.ops, func(c *Cmd) { arm.MoveStraight(c.x, c.y, c.z) })
 	case "G21":
 		c.inches = false
 	case "M107":
@@ -85,7 +68,7 @@ func (c *Cmd) AddOp(code Code) {
 }
 
 func dmux(read io.Reader, stop chan bool) {
-	r := NewParser(read)
+	r := gcode.NewParser(read)
 	cmd := Cmd{}
 	for {
 		select {
@@ -112,6 +95,10 @@ func dmux(read io.Reader, stop chan bool) {
 			default:
 				log.Printf("unknown code class: %v (%v)", c, cmd.line)
 			}
+		}
+		// TODO handle pausing as well
+		if !running {
+			return
 		}
 		cmd.Exec()
 		cmd.ops = cmd.ops[:0]

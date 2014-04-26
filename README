@@ -1,4 +1,4 @@
-#gdmux
+# gdmux
 
 Invocation: `gdmux -arm /dev/ttyStaubli -extruder /dev/ttyExtruder`
 

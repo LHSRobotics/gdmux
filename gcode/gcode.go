@@ -1,3 +1,9 @@
+// Package gcode provides a simple GCode parser.
+//
+// Because GCode is such a poorly specified standard, we aimed for compatability with
+// Skeinforge and CamBam. For more information about GCode refer to:
+//   - http://reprap.org/wiki/G-code
+//   - and http://reprap.org/wiki/G-code
 package gcode
 
 import (

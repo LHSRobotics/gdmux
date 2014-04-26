@@ -64,6 +64,11 @@ func NewStaubli(serialPort string) *Staubli {
 		log.Fatal(err)
 	}
 
-	return &Staubli{rw: s,
-		buf: make([]byte, 255)}
+	a := &Staubli{
+		rw:  s,
+		buf: make([]byte, 255),
+	}
+	
+	log.Println("first", a.readReply())
+	return a
 }

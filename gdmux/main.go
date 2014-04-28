@@ -22,7 +22,6 @@ var (
 	armFile  = flag.String("arm", "/dev/staubli-data", "serial file to talk to the staubli's console")
 	addr     = flag.String("addr", "0.0.0.0:5000", "tcp address on which to listen")
 	stdin    = flag.Bool("stdin", false, "read a gcode file from stdin")
-	tcp      = flag.Bool("tcp", false, "listen on tcp for gcode")
 	verbose  = flag.Bool("verbose", false, "print lots output")
 	dataRoot = flag.String("data",
 		strings.Split(os.Getenv("GOPATH"), ":")[0]+"/src/github.com/LHSRobotics/gdmux/ui",
@@ -136,11 +135,6 @@ func main() {
 	if *stdin {
 		log.Println("reading from stdin")
 		dmux(os.Stdin, make(chan bool))
-		os.Exit(0)
-	}
-
-	if *tcp {
-		listen()
 		os.Exit(0)
 	}
 

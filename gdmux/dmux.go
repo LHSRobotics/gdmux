@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"strconv"
@@ -97,7 +96,6 @@ func dmux(read io.Reader, stop chan bool) {
 		if !running {
 			return
 		}
-		weblog(fmt.Sprintf("Executing line %d: %s\n", n, cmd.line.Text))
 		cmd.Exec()
 		cmd.ops = cmd.ops[:0]
 		n++

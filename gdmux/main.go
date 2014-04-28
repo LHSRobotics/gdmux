@@ -12,6 +12,8 @@ import (
 	"sync"
 
 	"code.google.com/p/go.net/websocket"
+	
+	"github.com/LHSRobotics/gdmux/staubli"
 )
 
 var (
@@ -26,7 +28,7 @@ var (
 		strings.Split(os.Getenv("GOPATH"), ":")[0]+"/src/github.com/LHSRobotics/gdmux/ui",
 		"html directory")
 
-	arm   Arm
+	arm   staubli.Arm
 	stopc = make(chan bool)
 
 	running = false
@@ -129,7 +131,7 @@ func main() {
 	clients.m = make(map[chan string]bool)
 	go logger()
 
-	arm = NewStaubli(*armFile)
+	arm = staubli.NewStaubli(*armFile)
 
 	if *stdin {
 		log.Println("reading from stdin")

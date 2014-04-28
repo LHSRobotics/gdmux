@@ -1,4 +1,5 @@
-package main
+// Package staubli provides an interface to control the London Hackspace's Staübli arm.
+package staubli
 
 import (
 	"fmt"
@@ -22,32 +23,24 @@ type Staubli struct {
 }
 
 func (s *Staubli) Move(x, y, z float64) {
-	if *verbose {
-		log.Printf("moving arm to %f, %f, %f", x, y, z)
-	}
-
-	weblog(fmt.Sprintf("%8.2f %8.2f %8.2f", x, y, z))
-
+	log.Printf("Move %8.2f %8.2f %8.2f", x, y, z)
 	// we probably need a lock here...
 	_, err := fmt.Fprintf(s.rw, "%f %f %f\r\n", x, y, z)
 	if err != nil {
 		log.Println("error sending coordinates to arm: ", err)
 	}
-	weblog(fmt.Sprintf(" → %s\n", s.readReply()))
+	log.Printf(" → %s\n", s.readReply())
 }
 
 func (s *Staubli) MoveStraight(x, y, z float64) {
-	if *verbose {
-		log.Printf("straight moving arm to %f, %f, %f", x, y, z)
-	}
-
-	weblog(fmt.Sprintf("%8.2f %8.2f %8.2f", x, y, z))
+	log.Printf("MoveStraight %8.2f %8.2f %8.2f", x, y, z)
 
 	_, err := fmt.Fprintf(s.rw, "%f %f %f\r\n", x, y, z)
 	if err != nil {
 		log.Println("error sending coordinates to arm: ", err)
 	}
-	weblog(fmt.Sprintf(" → %s\n", s.readReply()))
+
+	log.Printf(" → %s\n", s.readReply())
 }
 
 func (s *Staubli) readReply() string {
@@ -68,7 +61,7 @@ func NewStaubli(serialPort string) *Staubli {
 		rw:  s,
 		buf: make([]byte, 255),
 	}
-	
+
 	log.Println("first", a.readReply())
 	return a
 }

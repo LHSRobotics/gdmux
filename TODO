@@ -1,2 +1,3 @@
-- write dummy arm
-- test dmux with dummy arm
+- write more tests for dmux
+- split dmux to its own package
+- a command to script updating a bunch of *.pg files on the console from a local dir

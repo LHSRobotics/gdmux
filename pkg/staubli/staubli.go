@@ -12,8 +12,8 @@ import (
 )
 
 type Arm interface {
-	Move(x, y, z float64)
-	MoveStraight(x, y, z float64)
+	Move(x, y, z float64) error
+	MoveStraight(x, y, z float64) error
 }
 
 type Staubli struct {
@@ -22,25 +22,33 @@ type Staubli struct {
 	buf []byte
 }
 
-func (s *Staubli) Move(x, y, z float64) {
+func (s *Staubli) Move(x, y, z float64) error{
 	log.Printf("Move %8.2f %8.2f %8.2f", x, y, z)
+	
 	// we probably need a lock here...
 	_, err := fmt.Fprintf(s.rw, "%f %f %f\r\n", x, y, z)
 	if err != nil {
-		log.Println("error sending coordinates to arm: ", err)
+		return fmt.Errorf("error sending coordinates to arm: ", err)
 	}
-	log.Printf(" → %s\n", s.readReply())
+	
+	if r := s.readReply(); r != "OK" {
+		return fmt.Errorf("error from arm:", r)
+	}
+	return nil
 }
 
-func (s *Staubli) MoveStraight(x, y, z float64) {
+func (s *Staubli) MoveStraight(x, y, z float64) error{
 	log.Printf("MoveStraight %8.2f %8.2f %8.2f", x, y, z)
 
 	_, err := fmt.Fprintf(s.rw, "%f %f %f\r\n", x, y, z)
 	if err != nil {
-		log.Println("error sending coordinates to arm: ", err)
+		return fmt.Errorf("error sending coordinates to arm: ", err)
 	}
-
-	log.Printf(" → %s\n", s.readReply())
+	
+	if r := s.readReply(); r != "OK" {
+		return fmt.Errorf("error from arm:", r)
+	}
+	return nil
 }
 
 func (s *Staubli) readReply() string {

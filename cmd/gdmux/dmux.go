@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"strconv"
@@ -53,9 +54,26 @@ func (c *Cmd) SetVar(code gcode.Code) {
 func (c *Cmd) AddOp(code gcode.Code) {
 	switch code {
 	case "G0":
-		c.ops = append(c.ops, func(c *Cmd) { arm.Move(c.x, c.y, c.z) })
+		// TODO(s): I don't how this is done, need to rethink this package...
+		c.ops = append(c.ops, func(c *Cmd) {
+			weblog(fmt.Sprintf("Move %8.2f %8.2f %8.2f", c.x, c.y, c.z))
+			err := arm.Move(c.x, c.y, c.z)
+			if err != nil {
+				weblog(fmt.Sprintf(" → %s\n", err))
+				return
+			}
+			weblog(" → OK\n")
+		})
 	case "G1":
-		c.ops = append(c.ops, func(c *Cmd) { arm.MoveStraight(c.x, c.y, c.z) })
+		c.ops = append(c.ops, func(c *Cmd) {
+			weblog(fmt.Sprintf("Straight Move %8.2f %8.2f %8.2f", c.x, c.y, c.z))
+			err := arm.MoveStraight(c.x, c.y, c.z)
+			if err != nil {
+				weblog(fmt.Sprintf(" → %s\n", err))
+				return
+			}
+			weblog(" → OK\n")
+		})
 	case "G21":
 		c.inches = false
 	case "M107":

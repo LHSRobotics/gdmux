@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	"code.google.com/p/go.net/websocket"
-	
+
 	"github.com/LHSRobotics/gdmux/pkg/staubli"
 )
 
@@ -20,12 +20,12 @@ var (
 	// armPort is the serial file connected to the arm controller's data line. For the Staubli
 	// its baudrate 38400, we assume that's already set for the device file. (I.e. with stty.)
 	armFile  = flag.String("arm", "/dev/staubli-data", "serial file to talk to the staubli's console")
-	dummy  = flag.Bool("dummy", false, "don't actually send commands to the arm")
+	dummy    = flag.Bool("dummy", false, "don't actually send commands to the arm")
 	addr     = flag.String("addr", "0.0.0.0:5000", "tcp address on which to listen")
 	stdin    = flag.Bool("stdin", false, "read a gcode file from stdin")
 	verbose  = flag.Bool("verbose", false, "print lots output")
 	dataRoot = flag.String("data",
-		strings.Split(os.Getenv("GOPATH"), ":")[0]+"/src/github.com/LHSRobotics/gdmux/ui",
+		strings.Split(os.Getenv("GOPATH"), ":")[0]+"/src/github.com/LHSRobotics/gdmux/cmd/gdmux/ui",
 		"html directory")
 
 	arm   staubli.Arm
@@ -61,6 +61,7 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 	weblog(fmt.Sprintf("Got run request from %s\n", r.RemoteAddr))
 	sessionLock.Lock()
 	running = true
+	fmt.Println("comingata")
 	weblog("RUNNING GCODE!\n")
 	dmux(r.Body, stopc)
 	running = false
@@ -86,7 +87,7 @@ var clients struct {
 var logc = make(chan string, 100)
 
 func weblog(msg string) {
-	log.Printf(msg)
+	log.Printf("foo %s", msg)
 	logc <- msg
 }
 
@@ -103,8 +104,7 @@ func logger() {
 }
 
 func handleLog(ws *websocket.Conn) {
-	// TODO think about buffering this instead of the select/default below.
-	var msgc = make(chan string)
+	var msgc = make(chan string, 200)
 
 	// TODO: Move this to weblog.Register()/Unregister() methods?
 	clients.Lock()
@@ -132,9 +132,9 @@ func main() {
 	go logger()
 
 	if *dummy {
-		arm = staubli.Dummy{}
- 	} else {
- 		arm = staubli.NewStaubli(*armFile)
+		arm = staubli.Dummy
+	} else {
+		arm = staubli.NewStaubli(*armFile)
 	}
 
 	if *stdin {

@@ -136,7 +136,6 @@ func main() {
 	if *dummy {
 		arm = staubli.Dummy
 	} else {
-
 		s, err := serial.OpenPort(&serial.Config{Name: *armFile, Baud: *baudrate})
 		if err != nil {
 			log.Fatal(err)
@@ -151,6 +150,7 @@ func main() {
 		os.Exit(0)
 	}
 
+	log.Println("listening on ", *addr)
 	http.HandleFunc("/run", handleRun)
 	http.HandleFunc("/stop", handleStop)
 	http.Handle("/log", websocket.Handler(handleLog))

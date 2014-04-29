@@ -7,8 +7,6 @@ import (
 	"log"
 	"strings"
 	"sync"
-
-	"github.com/tarm/goserial"
 )
 
 type Arm interface {
@@ -22,29 +20,29 @@ type Staubli struct {
 	buf []byte
 }
 
-func (s *Staubli) Move(x, y, z float64) error{
+func (s *Staubli) Move(x, y, z float64) error {
 	log.Printf("Move %8.2f %8.2f %8.2f", x, y, z)
-	
+
 	// we probably need a lock here...
 	_, err := fmt.Fprintf(s.rw, "%f %f %f\r\n", x, y, z)
 	if err != nil {
 		return fmt.Errorf("error sending coordinates to arm: ", err)
 	}
-	
+
 	if r := s.readReply(); r != "OK" {
 		return fmt.Errorf("error from arm:", r)
 	}
 	return nil
 }
 
-func (s *Staubli) MoveStraight(x, y, z float64) error{
+func (s *Staubli) MoveStraight(x, y, z float64) error {
 	log.Printf("MoveStraight %8.2f %8.2f %8.2f", x, y, z)
 
 	_, err := fmt.Fprintf(s.rw, "%f %f %f\r\n", x, y, z)
 	if err != nil {
 		return fmt.Errorf("error sending coordinates to arm: ", err)
 	}
-	
+
 	if r := s.readReply(); r != "OK" {
 		return fmt.Errorf("error from arm:", r)
 	}
@@ -59,14 +57,9 @@ func (s *Staubli) readReply() string {
 	return strings.TrimSpace(string(s.buf[:n]))
 }
 
-func NewStaubli(serialPort string) *Staubli {
-	s, err := serial.OpenPort(&serial.Config{Name: serialPort, Baud: 38400})
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func NewStaubli(rw io.ReadWriter) *Staubli {
 	a := &Staubli{
-		rw:  s,
+		rw:  rw,
 		buf: make([]byte, 255),
 	}
 

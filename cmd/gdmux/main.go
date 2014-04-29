@@ -14,12 +14,14 @@ import (
 	"code.google.com/p/go.net/websocket"
 
 	"github.com/LHSRobotics/gdmux/pkg/staubli"
+	"github.com/tarm/goserial"
 )
 
 var (
 	// armPort is the serial file connected to the arm controller's data line. For the Staubli
 	// its baudrate 38400, we assume that's already set for the device file. (I.e. with stty.)
 	armFile  = flag.String("arm", "/dev/staubli-data", "serial file to talk to the staubli's console")
+	baudrate = flag.Int("baudrate", 38400, "baud rate for the staubli's console")
 	dummy    = flag.Bool("dummy", false, "don't actually send commands to the arm")
 	addr     = flag.String("addr", "0.0.0.0:5000", "tcp address on which to listen")
 	stdin    = flag.Bool("stdin", false, "read a gcode file from stdin")
@@ -134,7 +136,13 @@ func main() {
 	if *dummy {
 		arm = staubli.Dummy
 	} else {
-		arm = staubli.NewStaubli(*armFile)
+
+		s, err := serial.OpenPort(&serial.Config{Name: *armFile, Baud: *baudrate})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		arm = staubli.NewStaubli(s)
 	}
 
 	if *stdin {

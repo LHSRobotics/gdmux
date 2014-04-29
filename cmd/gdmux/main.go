@@ -89,7 +89,7 @@ var clients struct {
 var logc = make(chan string, 100)
 
 func weblog(msg string) {
-	log.Printf("foo %s", msg)
+	log.Printf("%s", msg)
 	logc <- msg
 }
 

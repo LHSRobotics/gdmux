@@ -136,6 +136,7 @@ func main() {
 	if *dummy {
 		arm = staubli.Dummy
 	} else {
+		log.Println("opening ", *armFile)
 		s, err := serial.OpenPort(&serial.Config{Name: *armFile, Baud: *baudrate})
 		if err != nil {
 			log.Fatal(err)

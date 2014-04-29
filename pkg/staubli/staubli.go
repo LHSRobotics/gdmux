@@ -63,6 +63,5 @@ func NewStaubli(rw io.ReadWriter) *Staubli {
 		buf: make([]byte, 255),
 	}
 
-	log.Println("first", a.readReply())
 	return a
 }

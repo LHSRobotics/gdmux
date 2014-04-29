@@ -5,7 +5,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/LHSRobotics/gdmux/gcode"
+	"github.com/LHSRobotics/gdmux/pkg/gcode"
 )
 
 type Cmd struct {

@@ -14,12 +14,11 @@ var terminal = flag.String("terminal", "/dev/staubli-terminal", "the device file
 func main() {
 	flag.Parse()
 
-	/*term, err := os.OpenFile(*terminal, os.O_APPEND|os.O_RDWR, os.ModeDevice)
+	term, err := os.OpenFile(*terminal, os.O_APPEND|os.O_RDWR, os.ModeDevice)
 	if err != nil {
 		log.Println("error opening device file:", err)
 		os.Exit(1)
-	}*/
-	term := os.Stdout
+	}
 
 file:
 	for _, fname := range flag.Args() {

@@ -26,11 +26,11 @@ func (s *Staubli) Move(x, y, z float64) error {
 	// we probably need a lock here...
 	_, err := fmt.Fprintf(s.rw, "%f %f %f\r\n", x, y, z)
 	if err != nil {
-		return fmt.Errorf("error sending coordinates to arm: ", err)
+		return fmt.Errorf("error sending coordinates to arm: %s", err)
 	}
 
 	if r := s.readReply(); r != "OK" {
-		return fmt.Errorf("error from arm:", r)
+		return fmt.Errorf("error from arm: %s", r)
 	}
 	return nil
 }
@@ -40,11 +40,11 @@ func (s *Staubli) MoveStraight(x, y, z float64) error {
 
 	_, err := fmt.Fprintf(s.rw, "%f %f %f\r\n", x, y, z)
 	if err != nil {
-		return fmt.Errorf("error sending coordinates to arm: ", err)
+		return fmt.Errorf("error sending coordinates to arm: %s", err)
 	}
 
 	if r := s.readReply(); r != "OK" {
-		return fmt.Errorf("error from arm:", r)
+		return fmt.Errorf("error from arm: %s", r)
 	}
 	return nil
 }

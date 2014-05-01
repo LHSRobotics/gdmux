@@ -1,41 +1,41 @@
-	AUTO slun
-	AUTO REAL x, y, z
+AUTO slun
+AUTO REAL x, y, z
 
-	ATTACH (slun, 4) "SERIAL:1"
+ATTACH (slun, 4) "SERIAL:1"
 
-	SELECT ROBOT = 1
-	ATTACH ()
-	SPEED 40 ALWAYS
-	ACCEL (1) 100, 100
+SELECT ROBOT = 1
+ATTACH ()
+SPEED 40 ALWAYS
+ACCEL (1) 100, 100
 
-	SET zeroloc = TRANS(500,0,0,0,90,1)
-	ABOVE
-	IF INRANGE(zeroloc) == 0 THEN
-	    MOVE zeroloc
-	ELSE
-	    READY
-	    DRIVE 2, 45, 100
-	END
-	ABOVE
+SET zeroloc = TRANS(500,0,0,0,90,0)
+ABOVE
+IF INRANGE(zeroloc) == 0 THEN
+	MOVE zeroloc
+ELSE
+	READY
+	DRIVE 2, 45, 100
+END
+ABOVE
 
-	WHILE TRUE DO
-	    READ (slun) x, y, z
-	    IF IOSTAT(slun) < 0 THEN
+WHILE TRUE DO
+	READ (slun) x, y, z
+	IF IOSTAT(slun) < 0 THEN
 		TYPE IOSTAT(slun), " ", $ERROR(IOSTAT(slun))
 		TIMER 1 = 0
 		WAIT TIMER(1) > 1
-	    END
+	END
 
-	    x = x+500
-	    z = z-150
-	    SET loc = TRANS(x,y,z,0,90,1)
+	x = x+500
+	z = z-150
+	SET loc = TRANS(x,y,z,0,90,0)
 
-	    TYPE "x:", x, " y:", y, " z:", z
-	    IF INRANGE(loc) == 0 THEN
+	TYPE "x:", x, " y:", y, " z:", z
+	IF INRANGE(loc) == 0 THEN
 		MOVES loc
 		WRITE (slun) "OK"
-	    ELSE
-		TYPE "       out of range"
-		WRITE (slun) "Out of range"
-	    END
+	ELSE
+		TYPE "out of range"
+		WRITE (slun) "out of range"
 	END
+END

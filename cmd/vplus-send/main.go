@@ -37,7 +37,7 @@ func (sw *SlowWriter) Write(b []byte) error {
 
 func (sw *SlowWriter) Flush() {
 	sw.w.Write(sw.buf[:sw.l])
-	time.Sleep(40 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 	sw.l = 0
 }
 
@@ -49,6 +49,7 @@ func NewSlowWriter(w io.Writer) *SlowWriter {
 }
 
 var terminal = flag.String("terminal", "/dev/staubli-terminal", "the device file for the Staubli's termnial")
+var execute = flag.Bool("execute", false, "execute the first program after sending")
 
 func sendString(s string) error {
 	err := slow.Write([]byte(s))
@@ -71,6 +72,27 @@ func main() {
 	}
 
 	slow = NewSlowWriter(term)
+
+	err = sendString("abort\r\n")
+	if err != nil {
+		log.Printf("error sending command: %v", err)
+		os.Exit(1)
+	}
+	slow.Flush()
+
+	err = sendString("kill\r\n")
+	if err != nil {
+		log.Printf("error sending command: %v", err)
+		os.Exit(1)
+	}
+	slow.Flush()
+
+	err = sendString("kill\r\n")
+	if err != nil {
+		log.Printf("error sending command: %v", err)
+		os.Exit(1)
+	}
+	slow.Flush()
 
 file:
 	for _, fname := range flag.Args() {
@@ -118,7 +140,15 @@ file:
 			log.Printf("error sending file (%v): %v", fname, err)
 			continue file
 		}
+		slow.Flush()
+	}
+
+	err = sendString(fmt.Sprintf("ex %s\r\n", flag.Args()[0]))
+	if err != nil {
+		log.Printf("error sending command: %v", err)
+		os.Exit(1)
 	}
 	slow.Flush()
+
 	term.Close()
 }

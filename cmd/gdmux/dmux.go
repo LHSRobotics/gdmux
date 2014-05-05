@@ -11,6 +11,7 @@ import (
 
 type Cmd struct {
 	x, y, z, e, f float64 // TODO perhaps this should be a map? Also, perhaps keep it as string?
+	i,j,k,r float64 // For arc movements
 	ops           []func(c *Cmd)
 	inches        bool
 	line          *gcode.Line
@@ -54,7 +55,7 @@ func (c *Cmd) SetVar(code gcode.Code) {
 func (c *Cmd) AddOp(code gcode.Code) {
 	switch code {
 	case "G0":
-		// TODO(s): I don't how this is done, need to rethink this package...
+		// TODO(s): I don't like how this is done, need to rethink this package...
 		c.ops = append(c.ops, func(c *Cmd) {
 			weblog(fmt.Sprintf("Move %8.2f %8.2f %8.2f", c.x, c.y, c.z))
 			err := arm.Move(c.x, c.y, c.z)
@@ -68,6 +69,25 @@ func (c *Cmd) AddOp(code gcode.Code) {
 		c.ops = append(c.ops, func(c *Cmd) {
 			weblog(fmt.Sprintf("Straight Move %8.2f %8.2f %8.2f", c.x, c.y, c.z))
 			err := arm.MoveStraight(c.x, c.y, c.z)
+			if err != nil {
+				weblog(fmt.Sprintf(" → %s\n", err))
+				return
+			}
+			weblog(" → OK\n")
+		})
+	case "G2":
+		// Follow a clockwise arc.
+		//
+		// For now we only support the 'centre format arc'. This format gives us target coordinates
+		// and the coordinates of the centre of the circle whose arc we're following.
+		// It's not great but it's what all the slicers spit out.
+		//
+		// The other format is 'radius format arc' and that gives us target coordinates and a radius.
+		// It's probably worth supporting that at some point.
+		c.ops = append(c.ops, func(c *Cmd) {
+			weblog(fmt.Sprintf("Clockwise Arc to %8.2f %8.2f %8.2f", c.x, c.y, c.z))
+			// TODO add a step argument here and use negative to go anti-clockwise.
+			err := arm.ArcCenter(c.x, c.y, c.z, c.i, c.j, c.k)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return

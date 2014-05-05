@@ -28,6 +28,7 @@ WHILE TRUE DO
 
 	CASE op OF
 	VALUE 0:
+		; quick move
 		x = a+500
 		y = b
 		z = c-150
@@ -43,6 +44,7 @@ WHILE TRUE DO
 			WRITE (slun) "out of range"
 		END
 	VALUE 1:
+		; straight line
 		x = a+500
 		y = b
 		z = c-150
@@ -58,20 +60,25 @@ WHILE TRUE DO
 			WRITE (slun) "out of range"
 		END
 	VALUE 2:
-		x = a+500
-		y = b
-		z = c-150
+		; arc
+		center.x = a+500
+		center.y = b
+		center.z = c-150
 		
-		center.x = d
-		center.y = e
-		center.z = f
-		SET loc = TRANS(x,y,z,0,90,0)
+		target.x = d+500
+		target.y = e
+		target.z = f-150
+		
+		auto starta = atan2(x - center.x, y - center.y)
+		auto enda = atan2(target.x - center.x, target.y - center.y)
 		
 		TYPE "arc ", x, ",", y, ",", z
 		DURATION 0.5 ALWAYS
-		FOR angle = start TO last STEP angle.step
-			x = radius*COS(angle)+x.center 
-			y = radius*SIN(angle)+y.center 
+		auto angelstep = 1
+		FOR angle = 0 TO rotation STEP angelstep
+			x = radius * COS(angle) + x.center
+			y = radius * SIN(angle) + y.center
+			; let's ignore z for now
 			SET loc = TRANS(x,y,z,0,90,0)
 			IF INRANGE(loc) == 0 THEN
 				MOVE loc

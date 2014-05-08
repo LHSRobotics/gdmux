@@ -42,6 +42,12 @@ func (c *Cmd) SetVar(code gcode.Code) {
 		c.y = f
 	case 'Z':
 		c.z = f
+	case 'I':
+		c.i = f
+	case 'J':
+		c.j = f
+	case 'K':
+		c.k = f
 	case 'E':
 		c.e = f
 	case 'F':
@@ -67,7 +73,7 @@ func (c *Cmd) AddOp(code gcode.Code) {
 		})
 	case "G1":
 		c.ops = append(c.ops, func(c *Cmd) {
-			weblog(fmt.Sprintf("Straight Move %8.2f %8.2f %8.2f", c.x, c.y, c.z))
+			weblog(fmt.Sprintf("Line %8.2f %8.2f %8.2f", c.x, c.y, c.z))
 			err := arm.MoveStraight(c.x, c.y, c.z)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
@@ -85,7 +91,7 @@ func (c *Cmd) AddOp(code gcode.Code) {
 		// The other format is 'radius format arc' and that gives us target coordinates and a radius.
 		// It's probably worth supporting that at some point.
 		c.ops = append(c.ops, func(c *Cmd) {
-			weblog(fmt.Sprintf("Clockwise Arc to %8.2f %8.2f %8.2f", c.x, c.y, c.z))
+			weblog(fmt.Sprintf("Clockwise Arc to %8.2f %8.2f %8.2f, around %8.2f %8.2f %8.2f", c.x, c.y, c.z, c.i, c.j, c.k))
 			// TODO add a step argument here and use negative to go anti-clockwise.
 			err := arm.ArcCenter(c.x, c.y, c.z, c.i, c.j, c.k)
 			if err != nil {
@@ -124,7 +130,7 @@ func dmux(read io.Reader, stop chan bool) {
 			switch c[0] {
 			case 'G', 'M':
 				cmd.AddOp(c)
-			case 'X', 'Y', 'Z', 'E', 'F':
+			case 'X', 'Y', 'Z', 'E', 'F', 'I', 'J', 'K':
 				cmd.SetVar(c)
 			default:
 				log.Printf("unknown code class: %v (%v)", c, cmd.line)

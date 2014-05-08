@@ -1,6 +1,10 @@
 AUTO slun
 AUTO REAL x, y, z, a, b, c, op
 
+auto starta, enda
+auto angelstep
+auto angle, radius, zstep
+		
 ATTACH (slun, 4) "SERIAL:1"
 
 SELECT ROBOT = 1
@@ -17,6 +21,8 @@ ELSE
 	DRIVE 2, 45, 100
 END
 ABOVE
+
+cpon
 
 WHILE TRUE DO
 	READ (slun) op, a, b, c, d, e, f
@@ -61,32 +67,58 @@ WHILE TRUE DO
 		END
 	VALUE 2:
 		; arc
-		center.x = a+500
-		center.y = b
-		center.z = c-150
+		target.x = a+500
+		target.y = b
+		target.z = c-150
 		
-		target.x = d+500
-		target.y = e
-		target.z = f-150
+		center.x = d+500
+		center.y = e
+		center.z = f-150
 		
-		auto starta = atan2(x - center.x, y - center.y)
-		auto enda = atan2(target.x - center.x, target.y - center.y)
+		starta = atan2(y - center.y,x - center.x)
 		
-		TYPE "arc ", x, ",", y, ",", z
+;		TYPE "start: ", y - center.y, ", ", x - center.x
+		
+		enda = atan2(target.y - center.y, target.x - center.x)
+		
+;		TYPE "end: ", target.y - center.y, ", ", target.x - center.x
+		
+		
+		; TODO make sure the radius is the same for both
+		radius = sqrt(sqr(x - center.x) + sqr(y - center.y))
+		
+		TYPE "arc ", target.x, ",", target.y, ",", target.z
+;		TYPE "around ", center.x, ",", center.y, ",", center.z
 		DURATION 0.5 ALWAYS
-		auto angelstep = 1
-		FOR angle = 0 TO rotation STEP angelstep
-			x = radius * COS(angle) + x.center
-			y = radius * SIN(angle) + y.center
-			; let's ignore z for now
+		
+		angelstep = 10
+		
+		if enda < starta then
+			enda = enda + 360
+		end
+		
+		travel = (target.z-z)
+		rate = abs(angelstep/(enda-starta))
+		
+		zstep = travel * rate
+		
+;		TYPE "start angle: ", starta, " end angle: ", enda, " radius: ", radius, " zstep: ", zstep
+		
+		FOR angle = starta TO enda STEP angelstep
+			x = radius * COS(angle) + center.x
+			y = radius * SIN(angle) + center.y
+			
+			z = z + zstep
+		
 			SET loc = TRANS(x,y,z,0,90,0)
+			
 			IF INRANGE(loc) == 0 THEN
 				MOVE loc
 			ELSE
 				TYPE "arc part out of range"
 			END
 		END
-		BREAK
+		;BREAK
 		WRITE (slun) "OK"
 	ANY
 		TYPE "unknown opcode"

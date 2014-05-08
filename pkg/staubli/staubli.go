@@ -23,8 +23,6 @@ type Staubli struct {
 
 // Move the arm to the point (x,y,z), without guaranteeing a staight line.
 func (s *Staubli) Move(x, y, z float64) error {
-	log.Printf("Move %8.2f %8.2f %8.2f", x, y, z)
-
 	// we probably need a lock here...
 	_, err := fmt.Fprintf(s.rw, "0 %f %f %f\r\n", x, y, z)
 	if err != nil {
@@ -39,8 +37,6 @@ func (s *Staubli) Move(x, y, z float64) error {
 
 // Move the arm to the point (x,y,z) in a straight line.
 func (s *Staubli) MoveStraight(x, y, z float64) error {
-	log.Printf("MoveStraight %8.2f %8.2f %8.2f", x, y, z)
-
 	_, err := fmt.Fprintf(s.rw, "1 %f %f %f\r\n", x, y, z)
 	if err != nil {
 		return fmt.Errorf("error sending coordinates to arm: %s", err)
@@ -57,8 +53,6 @@ func (s *Staubli) MoveStraight(x, y, z float64) error {
 // The distance between the current position and (i,j,k) must equal that between (x,y,z) and (i,j,k).
 // This method is likely to be removed.
 func (s *Staubli) ArcCenter(x, y, z, i,j,k float64) error {
-	log.Printf("MoveStraight %8.2f %8.2f %8.2f", x, y, z)
-
 	_, err := fmt.Fprintf(s.rw, "2 %f %f %f %f %f %f\r\n", x, y, z, i, j,k)
 	if err != nil {
 		return fmt.Errorf("error sending coordinates to arm: %s", err)

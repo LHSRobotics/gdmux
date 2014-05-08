@@ -28,3 +28,8 @@ func (s *dummy) Move(x, y, z float64) error {
 func (s *dummy) MoveStraight(x, y, z float64) error {
 	return dummyMove(x, y, z)
 }
+
+// Move the arm to the point (x,y,z) following the path of an arc whose centre is at (i,j,k).
+func (s *dummy) ArcCenter(x, y, z, i,j,k float64) error {
+	return dummyMove(x, y, z)
+}

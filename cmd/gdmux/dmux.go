@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/LHSRobotics/gdmux/pkg/gcode"
+	"github.com/LHSRobotics/gdmux/pkg/staubli"
 )
 
 type Cmd struct {
@@ -93,7 +94,19 @@ func (c *Cmd) AddOp(code gcode.Code) {
 		c.ops = append(c.ops, func(c *Cmd) {
 			weblog(fmt.Sprintf("Clockwise Arc to %8.2f %8.2f %8.2f, around %8.2f %8.2f %8.2f", c.x, c.y, c.z, c.i, c.j, c.k))
 			// TODO add a step argument here and use negative to go anti-clockwise.
-			err := arm.ArcCenter(c.x, c.y, c.z, c.i, c.j, c.k)
+			err := arm.ArcCenter(c.x, c.y, c.z, c.i, c.j, c.k, staubli.Clockwise)
+			if err != nil {
+				weblog(fmt.Sprintf(" → %s\n", err))
+				return
+			}
+			weblog(" → OK\n")
+		})
+	case "G3":
+		// Follow an anti-clockwise arc.
+		c.ops = append(c.ops, func(c *Cmd) {
+			weblog(fmt.Sprintf("Anti-clockwise Arc to %8.2f %8.2f %8.2f, around %8.2f %8.2f %8.2f", c.x, c.y, c.z, c.i, c.j, c.k))
+			// TODO add a step argument here and use negative to go anti-clockwise.
+			err := arm.ArcCenter(c.x, c.y, c.z, c.i, c.j, c.k, staubli.Anticlockwise)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return

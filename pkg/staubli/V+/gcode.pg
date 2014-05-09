@@ -25,7 +25,7 @@ ABOVE
 cpon
 
 WHILE TRUE DO
-	READ (slun) op, a, b, c, d, e, f
+	READ (slun) op, a, b, c, d, e, f, g
 	IF IOSTAT(slun) < 0 THEN
 		TYPE IOSTAT(slun), " ", $ERROR(IOSTAT(slun))
 		TIMER 1 = 0
@@ -91,7 +91,7 @@ WHILE TRUE DO
 ;		TYPE "around ", center.x, ",", center.y, ",", center.z
 		DURATION 0.5 ALWAYS
 		
-		angelstep = 10
+		angelstep = g
 		
 		if enda < starta then
 			enda = enda + 360

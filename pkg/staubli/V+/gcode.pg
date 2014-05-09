@@ -93,10 +93,6 @@ WHILE TRUE DO
 		
 		angelstep = g
 		
-		if enda < starta then
-			enda = enda + 360
-		end
-		
 		travel = (target.z-z)
 		rate = abs(angelstep/(enda-starta))
 		
@@ -104,7 +100,11 @@ WHILE TRUE DO
 		
 ;		TYPE "start angle: ", starta, " end angle: ", enda, " radius: ", radius, " zstep: ", zstep
 		
-		FOR angle = starta TO enda STEP angelstep
+		arclength = abs(enda - starta)
+		
+		FOR i = 0 TO arclength
+			angle = angelstep * i + starta
+			
 			x = radius * COS(angle) + center.x
 			y = radius * SIN(angle) + center.y
 			

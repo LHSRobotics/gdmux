@@ -102,7 +102,7 @@ WHILE TRUE DO
 		
 		arclength = abs(enda - starta)
 		
-		FOR i = 0 TO arclength
+		FOR i = 0 TO arclength step abs(angelstep)
 			angle = angelstep * i + starta
 			
 			x = radius * COS(angle) + center.x

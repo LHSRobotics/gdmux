@@ -13,17 +13,17 @@
 <textarea id="code" name="code">G21 ; set units to millimeters
 G1 X0 Y0 Z0
 
-G2   X100  Y0  Z25     I50  J0  K0
-G2   X0    Y0  Z50     I50  J0  K0
-G2   X100  Y0  Z75     I50  J0  K0
-G2   X0    Y0  Z100    I50  J0  K0
-G2   X100  Y0  Z125    I50  J0  K0
-G2   X0    Y0  Z150    I50  J0  K0
-G2   X100  Y0  Z175    I50  J0  K0
-G2   X0    Y0  Z200    I50  J0  K0
+G2  Y100    Z25     I0  J50  K0
+G2  Y0      Z50
+G2  Y100    Z75
+G2  Y0      Z100
+G2  Y100    Z125
+G2  Y0      Z150
+G2  Y100    Z175
+G2  Y0      Z200
 
-G2   X200  Y0  Z100    I100  J0  K0
-G2   X0    Y0  Z0      I100  J0  K0
+G3   Y-200  Z100    J-100
+G3   Y0     Z0
 </textarea>
 
 <textarea readonly id="log">

@@ -31,7 +31,6 @@ var (
 		"html directory")
 
 	arm   staubli.Arm
-	stopc = make(chan bool)
 
 	running = false
 )
@@ -48,7 +47,7 @@ func listen() {
 			continue
 		}
 		log.Println("accepted connection:", err)
-		go dmux(conn, make(chan bool))
+		go dmux(conn)
 	}
 }
 
@@ -65,7 +64,7 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 	running = true
 	fmt.Println("comingata")
 	weblog("RUNNING GCODE!\n")
-	dmux(r.Body, stopc)
+	dmux(r.Body)
 	running = false
 	sessionLock.Unlock()
 	weblog("Done.\n")
@@ -147,7 +146,8 @@ func main() {
 
 	if *stdin {
 		log.Println("reading from stdin")
-		dmux(os.Stdin, make(chan bool))
+		running = true
+		dmux(os.Stdin)
 		os.Exit(0)
 	}
 

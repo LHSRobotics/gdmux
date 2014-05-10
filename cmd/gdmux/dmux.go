@@ -124,7 +124,7 @@ func (c *Cmd) AddOp(code gcode.Code) {
 	}
 }
 
-func dmux(read io.Reader, stop chan bool) {
+func dmux(read io.Reader) {
 	r := gcode.NewParser(read)
 	cmd := Cmd{}
 	n := 1

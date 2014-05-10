@@ -113,7 +113,7 @@ WHILE TRUE DO
 			SET loc = TRANS(x,y,z,0,90,0)
 			
 			IF INRANGE(loc) == 0 THEN
-				MOVE loc
+				MOVEs loc
 			ELSE
 				TYPE "arc part out of range"
 			END

@@ -1,9 +1,9 @@
 package gcode
 
 import (
-	"testing"
 	"io"
 	"os"
+	"testing"
 )
 
 func TestSamples(t *testing.T) {
@@ -21,7 +21,7 @@ func TestSamples(t *testing.T) {
 			t.Fail()
 		}
 		p := NewParser(r)
-		
+
 		for {
 			_, err = p.Next()
 			if err == io.EOF {

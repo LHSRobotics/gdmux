@@ -8,8 +8,8 @@ package gcode
 
 import (
 	"bufio"
-	"io"
 	"fmt"
+	"io"
 	"unicode"
 )
 
@@ -18,7 +18,7 @@ type Code string
 type Line struct {
 	Codes   []Code
 	Comment string
-	Text string
+	Text    string
 }
 
 type Parser struct {
@@ -43,7 +43,7 @@ func (p *Parser) Next() (*Line, error) {
 }
 
 func line(t string) (*Line, error) {
-	l := Line{Text:t}
+	l := Line{Text: t}
 	pos := 0
 
 	for pos < len(t) {

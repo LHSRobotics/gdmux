@@ -12,7 +12,7 @@ import (
 type Arm interface {
 	Move(x, y, z float64) error
 	MoveStraight(x, y, z float64) error
-	ArcCenter(x, y, z, i,j,k, direction float64) error
+	ArcCenter(x, y, z, i, j, k, direction float64) error
 }
 
 type Staubli struct {
@@ -49,7 +49,7 @@ func (s *Staubli) MoveStraight(x, y, z float64) error {
 }
 
 const (
-	Clockwise = 0.5
+	Clockwise     = 0.5
 	Anticlockwise = -0.5
 )
 
@@ -57,8 +57,8 @@ const (
 //
 // The distance between the current position and (i,j,k) must equal that between (x,y,z) and (i,j,k).
 // This method is likely to be removed.
-func (s *Staubli) ArcCenter(x, y, z, i,j,k, direction float64) error {
-	_, err := fmt.Fprintf(s.rw, "2 %f %f %f %f %f %f %f\r\n", x, y, z, i, j,k, direction)
+func (s *Staubli) ArcCenter(x, y, z, i, j, k, direction float64) error {
+	_, err := fmt.Fprintf(s.rw, "2 %f %f %f %f %f %f %f\r\n", x, y, z, i, j, k, direction)
 	if err != nil {
 		return fmt.Errorf("error sending coordinates to arm: %s", err)
 	}

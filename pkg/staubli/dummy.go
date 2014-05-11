@@ -30,6 +30,6 @@ func (s *dummy) MoveStraight(x, y, z float64) error {
 }
 
 // Move the arm to the point (x,y,z) following the path of an arc whose centre is at (i,j,k).
-func (s *dummy) ArcCenter(x, y, z, i,j,k, direction float64) error {
+func (s *dummy) ArcCenter(x, y, z, i, j, k, direction float64) error {
 	return dummyMove(x, y, z)
 }

@@ -37,7 +37,7 @@ WHILE TRUE DO
 		; quick move
 		x = a+500
 		y = b
-		z = c-150
+		z = c-131
 		SET loc = TRANS(x,y,z,0,90,0)
 
 		TYPE "move ", x, ",", y, ",", z
@@ -53,7 +53,7 @@ WHILE TRUE DO
 		; straight line
 		x = a+500
 		y = b
-		z = c-150
+		z = c-131
 		SET loc = TRANS(x,y,z,0,90,0)
 
 		TYPE "line ", x, ",", y, ",", z
@@ -69,26 +69,26 @@ WHILE TRUE DO
 		; arc
 		target.x = a+500
 		target.y = b
-		target.z = c-150
+		target.z = c-131
 		
 		center.x = d+500
 		center.y = e
-		center.z = f-150
+		center.z = f-131
 		
 		starta = atan2(y - center.y,x - center.x)
 		
-;		TYPE "start: ", y - center.y, ", ", x - center.x
+		TYPE "start: ", y - center.y, ", ", x - center.x
 		
 		enda = atan2(target.y - center.y, target.x - center.x)
 		
-;		TYPE "end: ", target.y - center.y, ", ", target.x - center.x
+		TYPE "end: ", target.y - center.y, ", ", target.x - center.x
 		
 		
 		; TODO make sure the radius is the same for both
 		radius = sqrt(sqr(x - center.x) + sqr(y - center.y))
 		
 		TYPE "arc ", target.x, ",", target.y, ",", target.z
-;		TYPE "around ", center.x, ",", center.y, ",", center.z
+		TYPE "around ", center.x, ",", center.y, ",", center.z
 		DURATION 0.5 ALWAYS
 		
 		angelstep = g
@@ -98,7 +98,7 @@ WHILE TRUE DO
 		
 		zstep = travel * rate
 		
-;		TYPE "start angle: ", starta, " end angle: ", enda, " radius: ", radius, " zstep: ", zstep
+		TYPE "start angle: ", starta, " end angle: ", enda, " radius: ", radius, " zstep: ", zstep
 		
 		arclength = abs((enda - starta)/angelstep)
 		

@@ -4,151 +4,60 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"os"
-	"time"
+	"path"
+
+	"github.com/LHSRobotics/gdmux/pkg/vplus"
 )
-
-type SlowWriter struct {
-	buf []byte
-	l   int
-	w   io.Writer
-}
-
-func (sw *SlowWriter) Write(b []byte) error {
-	i := 0
-	for i < len(b) {
-		n := copy(sw.buf[sw.l:], b[i:])
-		sw.l += n
-		i += n
-		if sw.l == len(sw.buf) {
-			_, err := sw.w.Write(sw.buf)
-			if err != nil {
-				return err
-			}
-			sw.l = 0
-			time.Sleep(20 * time.Millisecond)
-		}
-	}
-	return nil
-}
-
-func (sw *SlowWriter) Flush() {
-	sw.w.Write(sw.buf[:sw.l])
-	time.Sleep(50 * time.Millisecond)
-	sw.l = 0
-}
-
-func NewSlowWriter(w io.Writer) *SlowWriter {
-	return &SlowWriter{
-		buf: make([]byte, 40),
-		w:   w,
-	}
-}
 
 var terminal = flag.String("terminal", "/dev/staubli-terminal", "the device file for the Staubli's termnial")
 var execute = flag.Bool("execute", false, "execute the first program after sending")
 
-func sendString(s string) error {
-	err := slow.Write([]byte(s))
+func Cmd(s string) {
+	err := console.Cmd(s)
 	if err != nil {
-		return err
+		log.Fatal("error sending line: ", err)
 	}
-	return nil
 }
 
-var slow *SlowWriter
+var console *vplus.Console
 
 func main() {
 	flag.Parse()
 
-	var err error
+	if len(flag.Args()) == 0 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	term, err := os.OpenFile(*terminal, os.O_APPEND|os.O_RDWR, os.ModeDevice)
+	defer term.Close()
 	if err != nil {
-		log.Println("error opening device file:", err)
-		os.Exit(1)
+		log.Fatal("error opening device file: ", err)
 	}
 
-	slow = NewSlowWriter(term)
+	console = vplus.NewConsole(term)
 
-	err = sendString("abort\r\n")
-	if err != nil {
-		log.Printf("error sending command: %v", err)
-		os.Exit(1)
-	}
-	slow.Flush()
+	// Quit the currently running V+ program, if one is.
+	Cmd("abort")
 
-	err = sendString("kill\r\n")
-	if err != nil {
-		log.Printf("error sending command: %v", err)
-		os.Exit(1)
-	}
-	slow.Flush()
+	// Remove it from the stack so we can modify it.
+	// TODO perhaps parse the output of 'status' and only kill the right process?
+	// For now a couple of kill commands should do it, since it's unlikely that we're
+	// running any more than that.
+	Cmd("kill")
+	Cmd("kill")
 
-	err = sendString("kill\r\n")
-	if err != nil {
-		log.Printf("error sending command: %v", err)
-		os.Exit(1)
-	}
-	slow.Flush()
-
-file:
-	for _, fname := range flag.Args() {
-		content, err := ioutil.ReadFile(fname)
+	for _, f := range flag.Args() {
+		err = console.UpdateFile(f)
 		if err != nil {
-			log.Println("error opening file:", err)
-			continue
+			log.Fatal("error sending file: ", f)
 		}
-
-		err = sendString(fmt.Sprintf("delete %s\r\n", fname))
-		if err != nil {
-			log.Printf("error sending file (%v): %v", fname, err)
-			continue file
-		}
-		slow.Flush()
-		err = sendString("y\r\n")
-		if err != nil {
-			log.Printf("error sending file (%v): %v", fname, err)
-			continue file
-		}
-		slow.Flush()
-		err = sendString(fmt.Sprintf("edit %s\r\n", fname))
-		if err != nil {
-			log.Printf("error sending file (%v): %v", fname, err)
-			continue file
-		}
-		slow.Flush()
-
-		for _, b := range content {
-			if b == '\n' {
-				err = sendString("\r\n")
-				slow.Flush()
-			} else {
-				err = sendString(string(b))
-			}
-
-			if err != nil {
-				log.Printf("error sending file (%v): %v", fname, err)
-				continue file
-			}
-		}
-
-		err = sendString("e\r\n")
-		if err != nil {
-			log.Printf("error sending file (%v): %v", fname, err)
-			continue file
-		}
-		slow.Flush()
 	}
 
-	err = sendString(fmt.Sprintf("ex %s\r\n", flag.Args()[0]))
-	if err != nil {
-		log.Printf("error sending command: %v", err)
-		os.Exit(1)
+	if *execute {
+		// Execute the first argument if we're running
+		Cmd(fmt.Sprintf("ex %s", path.Base(flag.Args()[0])))
 	}
-	slow.Flush()
-
-	term.Close()
 }

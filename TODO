@@ -1,7 +1,7 @@
 - write more tests for dmux
 - split dmux to its own package
-- a command to script updating a bunch of *.pg files on the console from a local dir
 - add more controls to the web ui:
 	- pause
 	- change the zero point
 	- move current location of the arm
+	- upload a gcode file instead of copypasta

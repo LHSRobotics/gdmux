@@ -24,6 +24,7 @@ func NewConsole(w io.Writer) *Console {
 }
 
 func (c *Console) writeLine(b []byte) error {
+	// TODO read the output of these commands instead of sleeping arbitrary times...
 	i := 0
 	for i < len(b) {
 		n := copy(c.buf[c.l:], b[i:])

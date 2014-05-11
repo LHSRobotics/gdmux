@@ -10,12 +10,16 @@ import (
 	"github.com/LHSRobotics/gdmux/pkg/staubli"
 )
 
+type point struct {
+	x, y, z, a, b, c float64
+}
+
 type Cmd struct {
-	x, y, z, e, f float64 // TODO perhaps this should be a map? Also, perhaps keep it as string?
-	i,j,k,r float64 // For arc movements
-	ops           []func(c *Cmd)
-	inches        bool
-	line          *gcode.Line
+	env    map[byte]float64
+	zero   point
+	ops    []func(c *Cmd)
+	inches bool
+	line   *gcode.Line
 }
 
 func (c *Cmd) Exec() {
@@ -30,32 +34,13 @@ func (c *Cmd) Exec() {
 
 // SetVar parses a variable-setting code, such as X, Y, or E.
 func (c *Cmd) SetVar(code gcode.Code) {
-	f, err := strconv.ParseFloat(string(code[1:]), 32)
+	value, err := strconv.ParseFloat(string(code[1:]), 32)
 	if err != nil {
 		// TODO return this error instead of panicing
 		log.Fatal("couldn't parse float value")
 	}
 
-	switch code[0] {
-	case 'X':
-		c.x = f
-	case 'Y':
-		c.y = f
-	case 'Z':
-		c.z = f
-	case 'I':
-		c.i = f
-	case 'J':
-		c.j = f
-	case 'K':
-		c.k = f
-	case 'E':
-		c.e = f
-	case 'F':
-		c.f = f
-	default:
-		log.Printf("unknown class: %v", c) // should return an error here instead
-	}
+	c.env[code[0]] = value
 }
 
 // AddOp parses and adds an G- or M-code to the operation queue.
@@ -64,8 +49,8 @@ func (c *Cmd) AddOp(code gcode.Code) {
 	case "G0":
 		// TODO(s): I don't like how this is done, need to rethink this package...
 		c.ops = append(c.ops, func(c *Cmd) {
-			weblog(fmt.Sprintf("Move %8.2f %8.2f %8.2f", c.x, c.y, c.z))
-			err := arm.Move(c.x, c.y, c.z)
+			weblog(fmt.Sprintf("Move %8.2f %8.2f %8.2f", c.env['X'], c.env['Y'], c.env['Z']))
+			err := arm.Move(c.env['X'], c.env['Y'], c.env['Z'])
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return
@@ -74,8 +59,8 @@ func (c *Cmd) AddOp(code gcode.Code) {
 		})
 	case "G1":
 		c.ops = append(c.ops, func(c *Cmd) {
-			weblog(fmt.Sprintf("Line %8.2f %8.2f %8.2f", c.x, c.y, c.z))
-			err := arm.MoveStraight(c.x, c.y, c.z)
+			weblog(fmt.Sprintf("Line %8.2f %8.2f %8.2f", c.env['X'], c.env['Y'], c.env['Z']))
+			err := arm.MoveStraight(c.env['X'], c.env['Y'], c.env['Z'])
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return
@@ -92,9 +77,9 @@ func (c *Cmd) AddOp(code gcode.Code) {
 		// The other format is 'radius format arc' and that gives us target coordinates and a radius.
 		// It's probably worth supporting that at some point.
 		c.ops = append(c.ops, func(c *Cmd) {
-			weblog(fmt.Sprintf("Clockwise Arc to %8.2f %8.2f %8.2f, around %8.2f %8.2f %8.2f", c.x, c.y, c.z, c.i, c.j, c.k))
+			weblog(fmt.Sprintf("Clockwise Arc to %8.2f %8.2f %8.2f, around %8.2f %8.2f %8.2f", c.env['X'], c.env['Y'], c.env['Z'], c.env['I'], c.env['J'], c.env['K']))
 			// TODO add a step argument here and use negative to go anti-clockwise.
-			err := arm.ArcCenter(c.x, c.y, c.z, c.i, c.j, c.k, staubli.Clockwise)
+			err := arm.ArcCenter(c.env['X'], c.env['Y'], c.env['Z'], c.env['I'], c.env['J'], c.env['K'], staubli.Clockwise)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return
@@ -104,9 +89,9 @@ func (c *Cmd) AddOp(code gcode.Code) {
 	case "G3":
 		// Follow an anti-clockwise arc.
 		c.ops = append(c.ops, func(c *Cmd) {
-			weblog(fmt.Sprintf("Anti-clockwise Arc to %8.2f %8.2f %8.2f, around %8.2f %8.2f %8.2f", c.x, c.y, c.z, c.i, c.j, c.k))
+			weblog(fmt.Sprintf("Anti-clockwise Arc to %8.2f %8.2f %8.2f, around %8.2f %8.2f %8.2f", c.env['X'], c.env['Y'], c.env['Z'], c.env['I'], c.env['J'], c.env['K']))
 			// TODO add a step argument here and use negative to go anti-clockwise.
-			err := arm.ArcCenter(c.x, c.y, c.z, c.i, c.j, c.k, staubli.Anticlockwise)
+			err := arm.ArcCenter(c.env['X'], c.env['Y'], c.env['Z'], c.env['I'], c.env['J'], c.env['K'], staubli.Anticlockwise)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return

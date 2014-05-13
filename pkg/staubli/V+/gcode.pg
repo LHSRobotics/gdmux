@@ -16,13 +16,13 @@ SET zeroloc = TRANS(500,0,0,0,90,0)
 ABOVE
 IF INRANGE(zeroloc) == 0 THEN
 	MOVE zeroloc
+	WRITE (slun) "Ready"
 ELSE
 	READY
 	DRIVE 2, 45, 100
+	WRITE (slun) "Ready"
 END
 ABOVE
-
-cpon
 
 WHILE TRUE DO
 	READ (slun) op, a, b, c, d, e, f, g
@@ -35,9 +35,9 @@ WHILE TRUE DO
 	CASE op OF
 	VALUE 0:
 		; quick move
-		x = a+500
+		x = a
 		y = b
-		z = c-131
+		z = c
 		SET loc = TRANS(x,y,z,0,90,0)
 
 		TYPE "move ", x, ",", y, ",", z
@@ -51,9 +51,9 @@ WHILE TRUE DO
 		END
 	VALUE 1:
 		; straight line
-		x = a+500
+		x = a
 		y = b
-		z = c-131
+		z = c
 		SET loc = TRANS(x,y,z,0,90,0)
 
 		TYPE "line ", x, ",", y, ",", z
@@ -67,13 +67,13 @@ WHILE TRUE DO
 		END
 	VALUE 2:
 		; arc
-		target.x = a+500
+		target.x = a
 		target.y = b
-		target.z = c-131
+		target.z = c
 		
-		center.x = d+500
+		center.x = d
 		center.y = e
-		center.z = f-131
+		center.z = f
 		
 		starta = atan2(y - center.y,x - center.x)
 		

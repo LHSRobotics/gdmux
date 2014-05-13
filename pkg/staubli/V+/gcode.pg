@@ -14,15 +14,13 @@ ACCEL (1) 100, 100
 
 SET zeroloc = TRANS(500,0,0,0,90,0)
 ABOVE
-IF INRANGE(zeroloc) == 0 THEN
-	MOVE zeroloc
-	WRITE (slun) "Ready"
-ELSE
+IF INRANGE(zeroloc) != 0 THEN
 	READY
 	DRIVE 2, 45, 100
-	WRITE (slun) "Ready"
 END
-ABOVE
+
+MOVE zeroloc
+WRITE (slun) "Ready"
 
 WHILE TRUE DO
 	READ (slun) op, a, b, c, d, e, f, g
@@ -40,6 +38,11 @@ WHILE TRUE DO
 		z = c
 		SET loc = TRANS(x,y,z,0,90,0)
 
+		if (x == 0) and (y == 0) and (z == 0) then
+			TYPE "got zeros, wtf"
+			pause
+		end
+
 		TYPE "move ", x, ",", y, ",", z
 		IF INRANGE(loc) == 0 THEN
 			MOVE loc
@@ -55,6 +58,11 @@ WHILE TRUE DO
 		y = b
 		z = c
 		SET loc = TRANS(x,y,z,0,90,0)
+
+		if (x == 0) and (y == 0) and (z == 0) then
+			TYPE "got zeros, wtf"
+			pause
+		end
 
 		TYPE "line ", x, ",", y, ",", z
 		IF INRANGE(loc) == 0 THEN
@@ -77,18 +85,12 @@ WHILE TRUE DO
 		
 		starta = atan2(y - center.y,x - center.x)
 		
-		TYPE "start: ", y - center.y, ", ", x - center.x
-		
 		enda = atan2(target.y - center.y, target.x - center.x)
-		
-		TYPE "end: ", target.y - center.y, ", ", target.x - center.x
-		
 		
 		; TODO make sure the radius is the same for both
 		radius = sqrt(sqr(x - center.x) + sqr(y - center.y))
 		
-		TYPE "arc ", target.x, ",", target.y, ",", target.z
-		TYPE "around ", center.x, ",", center.y, ",", center.z
+		TYPE "arc ", target.x, ",", target.y, ",", target.z, "around ", center.x, ",", center.y, ",", center.z
 		DURATION 0.5 ALWAYS
 		
 		angelstep = g
@@ -97,8 +99,6 @@ WHILE TRUE DO
 		rate = abs(angelstep/(enda-starta))
 		
 		zstep = travel * rate
-		
-		TYPE "start angle: ", starta, " end angle: ", enda, " radius: ", radius, " zstep: ", zstep
 		
 		arclength = abs((enda - starta)/angelstep)
 		

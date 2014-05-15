@@ -21,9 +21,9 @@ import (
 var (
 	// armPort is the serial file connected to the arm controller's data line. For the Staubli
 	// its baudrate 19200, we assume that's already set for the device file. (I.e. with stty.)
-	ttyData     = flag.String("datatty", "/dev/staubli-data", "serial tty to the Staubli data line")
+	ttyData     = flag.String("datatty", "/dev/ttyS0", "serial tty to the Staubli data line")
 	baudData    = flag.Int("datarate", 19200, "baud rate for the staubli's data line")
-	ttyConsole  = flag.String("consoletty", "/dev/staubli-terminal", "serial tty to the Staubli console prompt")
+	ttyConsole  = flag.String("consoletty", "/dev/ttyUSB0", "serial tty to the Staubli console prompt")
 	baudConsole = flag.Int("consolerate", 38400, "baud rate for the staubli's console")
 
 	originx = flag.Float64("x", 500, "x coordinates for the origin")
@@ -32,9 +32,9 @@ var (
 
 	dummy       = flag.Bool("dummy", false, "don't actually send commands to the arm")
 	httpAddr    = flag.String("http", "", "tcp address on which to listen")
-	nosendvplus = flag.Bool("nosendvplus", false, "don't send over the V+ code on startup")
+	nosendvplus = flag.Bool("skipv", false, "don't send over the V+ code on startup")
 	verbose     = flag.Bool("verbose", false, "print lots output")
-	dataRoot    = flag.String("data",
+	dataRoot    = flag.String("root",
 		strings.Split(os.Getenv("GOPATH"), ":")[0]+"/src/github.com/LHSRobotics/gdmux",
 		"repository root to find static files")
 

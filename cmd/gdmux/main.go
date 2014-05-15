@@ -26,6 +26,10 @@ var (
 	ttyConsole  = flag.String("consoletty", "/dev/staubli-terminal", "serial tty to the Staubli console prompt")
 	baudConsole = flag.Int("consolerate", 38400, "baud rate for the staubli's console")
 
+	originx = flag.Float64("x", 500, "x coordinates for the origin")
+	originy = flag.Float64("y", 0, "y coordinates for the origin")
+	originz = flag.Float64("z", -100, "z coordinates for the origin")
+
 	dummy       = flag.Bool("dummy", false, "don't actually send commands to the arm")
 	httpAddr    = flag.String("http", "", "tcp address on which to listen")
 	nosendvplus = flag.Bool("nosendvplus", false, "don't send over the V+ code on startup")
@@ -143,6 +147,8 @@ func sendPg() {
 }
 
 func initArm() {
+	origin.x, origin.y, origin.z = *originx, *originy, *originz
+
 	if *dummy {
 		arm = staubli.Dummy
 	} else {

@@ -13,8 +13,10 @@ SPEED 40 ALWAYS
 ACCEL (1) 100, 100
 
 SET zeroloc = TRANS(500,0,0,0,90,0)
+
 ABOVE
-IF INRANGE(zeroloc) != 0 THEN
+
+IF NOT(INRANGE(zeroloc) == 0) THEN
 	READY
 	DRIVE 2, 45, 100
 END
@@ -106,6 +108,7 @@ WHILE TRUE DO
 			angle = angelstep * i + starta
 			
 			x = radius * COS(angle) + center.x
+			
 			y = radius * SIN(angle) + center.y
 			
 			z = z + zstep

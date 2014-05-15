@@ -14,8 +14,9 @@ type point struct {
 	x, y, z, a, b, c float64
 }
 
+var origin point
+
 type Cmd struct {
-	zero   point
 	env    map[byte]float64
 	ops    []func(c *Cmd)
 	inches bool
@@ -50,7 +51,7 @@ func (c *Cmd) AddOp(code gcode.Code) {
 		// TODO(s): I don't like how this is done, need to rethink this package...
 		c.ops = append(c.ops, func(c *Cmd) {
 			weblog(fmt.Sprintf("Move %8.2f %8.2f %8.2f", c.env['X'], c.env['Y'], c.env['Z']))
-			err := arm.Move(c.env['X']+c.zero.x, c.env['Y']+c.zero.y, c.env['Z']+c.zero.z)
+			err := arm.Move(c.env['X']+origin.x, c.env['Y']+origin.y, c.env['Z']+origin.z)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return
@@ -60,7 +61,7 @@ func (c *Cmd) AddOp(code gcode.Code) {
 	case "G1":
 		c.ops = append(c.ops, func(c *Cmd) {
 			weblog(fmt.Sprintf("Line %8.2f %8.2f %8.2f", c.env['X'], c.env['Y'], c.env['Z']))
-			err := arm.MoveStraight(c.env['X']+c.zero.x, c.env['Y']+c.zero.y, c.env['Z']+c.zero.z)
+			err := arm.MoveStraight(c.env['X']+origin.x, c.env['Y']+origin.y, c.env['Z']+origin.z)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return
@@ -79,8 +80,8 @@ func (c *Cmd) AddOp(code gcode.Code) {
 		c.ops = append(c.ops, func(c *Cmd) {
 			weblog(fmt.Sprintf("Clockwise Arc to %8.2f %8.2f %8.2f, around %8.2f %8.2f %8.2f", c.env['X'], c.env['Y'], c.env['Z'], c.env['I'], c.env['J'], c.env['K']))
 			// TODO add a step argument here and use negative to go anti-clockwise.
-			err := arm.ArcCenter(c.env['X']+c.zero.x, c.env['Y']+c.zero.y, c.env['Z']+c.zero.z,
-				c.env['I']+c.zero.x, c.env['J']+c.zero.y, c.env['K']+c.zero.z, staubli.Clockwise)
+			err := arm.ArcCenter(c.env['X']+origin.x, c.env['Y']+origin.y, c.env['Z']+origin.z,
+				c.env['I']+origin.x, c.env['J']+origin.y, c.env['K']+origin.z, staubli.Clockwise)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return
@@ -92,8 +93,8 @@ func (c *Cmd) AddOp(code gcode.Code) {
 		c.ops = append(c.ops, func(c *Cmd) {
 			weblog(fmt.Sprintf("Anti-clockwise Arc to %8.2f %8.2f %8.2f, around %8.2f %8.2f %8.2f", c.env['X'], c.env['Y'], c.env['Z'], c.env['I'], c.env['J'], c.env['K']))
 			// TODO add a step argument here and use negative to go anti-clockwise.
-			err := arm.ArcCenter(c.env['X']+c.zero.x, c.env['Y']+c.zero.y, c.env['Z']+c.zero.z,
-				c.env['I']+c.zero.x, c.env['J']+c.zero.y, c.env['K']+c.zero.z, staubli.Anticlockwise)
+			err := arm.ArcCenter(c.env['X']+origin.x, c.env['Y']+origin.y, c.env['Z']+origin.z,
+				c.env['I']+origin.x, c.env['J']+origin.y, c.env['K']+origin.z, staubli.Anticlockwise)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return

@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"path"
@@ -22,38 +21,22 @@ import (
 var (
 	// armPort is the serial file connected to the arm controller's data line. For the Staubli
 	// its baudrate 19200, we assume that's already set for the device file. (I.e. with stty.)
-	armFile     = flag.String("arm", "/dev/staubli-data", "serial file to the Staubli console data line")
-	consoleFile = flag.String("console", "/dev/staubli-terminal", "serial file to the Staubli console prompt")
-	baudrate    = flag.Int("baudrate", 19200, "baud rate for the staubli's console")
+	ttyData     = flag.String("datatty", "/dev/staubli-data", "serial tty to the Staubli data line")
+	baudData    = flag.Int("datarate", 19200, "baud rate for the staubli's data line")
+	ttyConsole  = flag.String("consoletty", "/dev/staubli-terminal", "serial tty to the Staubli console prompt")
+	baudConsole = flag.Int("consolerate", 38400, "baud rate for the staubli's console")
+
 	dummy       = flag.Bool("dummy", false, "don't actually send commands to the arm")
-	addr        = flag.String("addr", "0.0.0.0:5000", "tcp address on which to listen")
-	stdin       = flag.Bool("stdin", false, "read a gcode file from stdin")
+	httpAddr    = flag.String("http", "", "tcp address on which to listen")
 	nosendvplus = flag.Bool("nosendvplus", false, "don't send over the V+ code on startup")
 	verbose     = flag.Bool("verbose", false, "print lots output")
 	dataRoot    = flag.String("data",
 		strings.Split(os.Getenv("GOPATH"), ":")[0]+"/src/github.com/LHSRobotics/gdmux",
 		"repository root to find static files")
 
-	arm staubli.Arm
-
+	arm     staubli.Arm
 	running = false
 )
-
-func listen() {
-	ln, err := net.Listen("tcp", *addr)
-	if err != nil {
-		log.Fatal("couldn't listen on socket:", err)
-	}
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			log.Println("couldn't accept connection:", err)
-			continue
-		}
-		log.Println("accepted connection:", err)
-		go dmux(conn)
-	}
-}
 
 var sessionLock = sync.Mutex{}
 
@@ -130,64 +113,85 @@ func handleLog(ws *websocket.Conn) {
 	}
 }
 
+func sendPg() {
+	log.Println("Sending over V+ code")
+	s, err := serial.OpenPort(&serial.Config{Name: *ttyConsole, Baud: *baudConsole})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer s.Close()
+	console := vplus.NewConsole(s)
+
+	f := *dataRoot + "/pkg/staubli/V+/gcode.pg"
+
+	err = console.Cmd("abort")
+	if err != nil {
+		log.Fatal("error sending file: ", f)
+	}
+	err = console.Cmd("kill")
+	if err != nil {
+		log.Fatal("error sending file: ", f)
+	}
+	err = console.UpdateFile(f)
+	if err != nil {
+		log.Fatal("error sending file: ", f)
+	}
+	err = console.Cmd(fmt.Sprintf("ex %s", path.Base(f)))
+	if err != nil {
+		log.Fatal("error sending file: ", f)
+	}
+}
+
+func initArm() {
+	if *dummy {
+		arm = staubli.Dummy
+	} else {
+		log.Println("Opening ", *ttyData)
+		s, err := serial.OpenPort(&serial.Config{Name: *ttyData, Baud: *baudData})
+		if err != nil {
+			log.Fatal(err)
+		}
+		arm = staubli.NewStaubli(s)
+	}
+
+	if !*nosendvplus {
+		sendPg()
+	}
+}
+
 func main() {
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "usage: %s [gcode.nc]\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "       %s -http :5000\n", os.Args[0])
+		flag.PrintDefaults()
+	}
 	flag.Parse()
 
 	clients.m = make(map[chan string]bool)
 	go logger()
 
-	if *dummy {
-		arm = staubli.Dummy
-	} else {
-		log.Println("Opening ", *armFile)
-		s, err := serial.OpenPort(&serial.Config{Name: *armFile, Baud: *baudrate})
+	if *httpAddr != "" {
+		initArm()
+		log.Println("Listening on ", *httpAddr)
+		http.HandleFunc("/run", handleRun)
+		http.HandleFunc("/stop", handleStop)
+		http.Handle("/log", websocket.Handler(handleLog))
+		http.Handle("/", http.FileServer(http.Dir(*dataRoot+"/cmd/gdmux/ui")))
+		log.Fatal(http.ListenAndServe(*httpAddr, nil))
+	}
+
+	if len(flag.Args()) == 0 {
+		flag.Usage()
+		os.Exit(2)
+	}
+
+	initArm()
+	running = true
+	for _, fn := range flag.Args() {
+		f, err := os.Open(fn)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		arm = staubli.NewStaubli(s)
+		dmux(f)
 	}
-
-	if !*nosendvplus {
-		log.Println("Sending over V+ code")
-		term, err := os.OpenFile(*consoleFile, os.O_APPEND|os.O_RDWR, os.ModeDevice)
-		if err != nil {
-			log.Fatal("error opening device file: ", err)
-		}
-		console := vplus.NewConsole(term)
-
-		f := *dataRoot + "/pkg/staubli/V+/gcode.pg"
-
-		err = console.Cmd("abort")
-		if err != nil {
-			log.Fatal("error sending file: ", f)
-		}
-		err = console.Cmd("kill")
-		if err != nil {
-			log.Fatal("error sending file: ", f)
-		}
-		err = console.UpdateFile(f)
-		if err != nil {
-			log.Fatal("error sending file: ", f)
-		}
-		err = console.Cmd(fmt.Sprintf("ex %s", path.Base(f)))
-		if err != nil {
-			log.Fatal("error sending file: ", f)
-		}
-		term.Close()
-	}
-
-	if *stdin {
-		log.Println("reading from stdin")
-		running = true
-		dmux(os.Stdin)
-		os.Exit(0)
-	}
-
-	log.Println("listening on ", *addr)
-	http.HandleFunc("/run", handleRun)
-	http.HandleFunc("/stop", handleStop)
-	http.Handle("/log", websocket.Handler(handleLog))
-	http.Handle("/", http.FileServer(http.Dir(*dataRoot+"/cmd/gdmux/ui")))
-	log.Fatal(http.ListenAndServe(*addr, nil))
 }

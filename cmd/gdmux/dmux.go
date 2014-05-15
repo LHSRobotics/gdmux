@@ -15,8 +15,8 @@ type point struct {
 }
 
 type Cmd struct {
-	env    map[byte]float64
 	zero   point
+	env    map[byte]float64
 	ops    []func(c *Cmd)
 	inches bool
 	line   *gcode.Line
@@ -114,8 +114,7 @@ func (c *Cmd) AddOp(code gcode.Code) {
 func dmux(read io.Reader) {
 	r := gcode.NewParser(read)
 	cmd := Cmd{
-		env:  make(map[byte]float64),
-		zero: point{x: 500, y: 0, z: -100},
+		env: make(map[byte]float64),
 	}
 	n := 1
 	for {
@@ -126,7 +125,7 @@ func dmux(read io.Reader) {
 		} else if err != nil {
 			// TODO probably better to pause on errors
 			log.Println("parse error: %v", err)
-			continue
+			break
 		}
 
 		for _, c := range cmd.line.Codes {

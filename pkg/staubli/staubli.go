@@ -48,6 +48,19 @@ func (s *Staubli) MoveStraight(x, y, z float64) error {
 	return nil
 }
 
+// Move the arm to the point (x,y,z) in a straight line, using its current position as origin.
+func (s *Staubli) MoveRel(x, y, z float64) error {
+	_, err := fmt.Fprintf(s.rw, "3 %.3f %.3f %.3f\r\n", x, y, z)
+	if err != nil {
+		return fmt.Errorf("error sending coordinates to arm: %s", err)
+	}
+
+	if r := s.readReply(); r != "OK" {
+		return fmt.Errorf("error from arm: %s", r)
+	}
+	return nil
+}
+
 const (
 	Clockwise     = 1
 	Anticlockwise = -1

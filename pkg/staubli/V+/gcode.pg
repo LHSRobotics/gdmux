@@ -92,7 +92,7 @@ WHILE TRUE DO
 		; TODO make sure the radius is the same for both
 		radius = sqrt(sqr(x - center.x) + sqr(y - center.y))
 		
-		TYPE "arc ", target.x, ",", target.y, ",", target.z, "around ", center.x, ",", center.y, ",", center.z
+		TYPE "arc ", target.x, ",", target.y, ",", target.z
 		DURATION 0.5 ALWAYS
 		
 		angelstep = g
@@ -123,6 +123,20 @@ WHILE TRUE DO
 		END
 		;BREAK
 		WRITE (slun) "OK"
+	VALUE 3:
+		; relative line
+		HERE cur
+
+		SET loc = SHIFT(cur BY a, b, c)
+		TYPE "relative ", a, ",", b, ",", c
+		IF INRANGE(loc) == 0 THEN
+			MOVES loc
+			BREAK
+			WRITE (slun) "OK"
+		ELSE
+			TYPE "out of range"
+			WRITE (slun) "out of range"
+		END
 	ANY
 		TYPE "unknown opcode"
 		WRITE (slun) "unknown opcode"

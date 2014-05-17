@@ -32,7 +32,7 @@ var (
 
 	dummy       = flag.Bool("dummy", false, "don't actually send commands to the arm")
 	httpAddr    = flag.String("http", "", "tcp address on which to listen")
-	nosendvplus = flag.Bool("skipv", false, "don't send over the V+ code on startup")
+	sendvplus = flag.Bool("sendv", false, "send over the V+ code on startup")
 	verbose     = flag.Bool("verbose", false, "print lots output")
 	dataRoot    = flag.String("root",
 		strings.Split(os.Getenv("GOPATH"), ":")[0]+"/src/github.com/LHSRobotics/gdmux",
@@ -132,10 +132,12 @@ func sendPg() {
 	if err != nil {
 		log.Fatal("error sending file: ", f)
 	}
+	console.Expect()
 	err = console.Cmd("kill")
 	if err != nil {
 		log.Fatal("error sending file: ", f)
 	}
+	console.Expect()
 	err = console.UpdateFile(f)
 	if err != nil {
 		log.Fatal("error sending file: ", f)
@@ -160,7 +162,7 @@ func initArm() {
 		arm = staubli.NewStaubli(s)
 	}
 
-	if !*nosendvplus {
+	if *sendvplus {
 		sendPg()
 	}
 }
@@ -173,10 +175,10 @@ func main() {
 	}
 	flag.Parse()
 
-	clients.m = make(map[chan string]bool)
 	go logger()
 
 	if *httpAddr != "" {
+		clients.m = make(map[chan string]bool)
 		initArm()
 		log.Println("Listening on ", *httpAddr)
 		http.HandleFunc("/run", handleRun)

@@ -7,53 +7,47 @@ import (
 	"io"
 	"os"
 	"path"
-	"time"
 )
 
 type Console struct {
 	buf []byte
 	l   int
-	w   io.Writer
+	w   io.ReadWriter
 }
 
-func NewConsole(w io.Writer) *Console {
+func NewConsole(w io.ReadWriter) *Console {
 	return &Console{
-		buf: make([]byte, 40),
+		buf: make([]byte, 80),
 		w:   w,
 	}
 }
 
+// BUG: long lines fail.
 func (c *Console) writeLine(b []byte) error {
-	// TODO read the output of these commands instead of sleeping arbitrary times...
-	i := 0
-	for i < len(b) {
-		n := copy(c.buf[c.l:], b[i:])
-		c.l += n
-		i += n
-		if c.l == len(c.buf) {
-			_, err := c.w.Write(c.buf)
-			if err != nil {
-				return err
-			}
-			c.l = 0
-			// This function is full of random sleeps because the serial line keeps crapping out on us.
-			// We need to sort this out.
-			time.Sleep(20 * time.Millisecond)
+	if _, err := c.w.Write(b); err != nil {
+		return err
+	}
+	crlf := []byte{'\r', '\n'}
+	if _, err := c.w.Write(crlf); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Console) Expect() {
+	var b [100]byte
+	buf := b[:]
+	for {
+		fmt.Printf(".")
+		n, err := c.w.Read(buf)
+		// This is really shitty. We should probably do a more fancy expect sort of thing.
+		if buf[n-1] == '.' || buf[n-1] == '?' || (buf[n-1] == ' ' && buf[n-2] == '?') {
+			return
+		}
+		if err != nil {
+			return
 		}
 	}
-
-	if _, err := c.w.Write(c.buf[:c.l]); err != nil {
-		return err
-	}
-	c.buf[0] = '\r'
-	c.buf[1] = '\n'
-	if _, err := c.w.Write(c.buf[:2]); err != nil {
-		return err
-	}
-	c.l = 0
-
-	time.Sleep(50 * time.Millisecond)
-	return nil
 }
 
 // Cmd sends a single line to the Stäubli console.
@@ -67,14 +61,17 @@ func (c *Console) UpdateFile(name string) (err error) {
 	if err != nil {
 		return
 	}
+	c.Expect()
 	err = c.Cmd("y")
 	if err != nil {
 		return
 	}
+	c.Expect()
 	err = c.Cmd(fmt.Sprintf("edit %s", path.Base(name)))
 	if err != nil {
 		return
 	}
+	c.Expect()
 
 	f, err := os.Open(name)
 	if err != nil {
@@ -86,13 +83,15 @@ func (c *Console) UpdateFile(name string) (err error) {
 		if err != nil {
 			return
 		}
+	c.Expect()
 	}
 	if err = scanner.Err(); err != nil {
 		return
 	}
 
 	err = c.Cmd("e")
+	c.Expect()
 	return
 }
 
-// TODO Cmd/UpdateFile without an object. should probably panic on error.
+// TODO Cmd/UpdateFile without an object. Should probably panic on error.

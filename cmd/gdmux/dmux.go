@@ -81,7 +81,7 @@ func (c *Cmd) AddOp(code gcode.Code) {
 			weblog(fmt.Sprintf("Clockwise Arc to %8.2f %8.2f %8.2f, around %8.2f %8.2f %8.2f", c.env['X'], c.env['Y'], c.env['Z'], c.env['I'], c.env['J'], c.env['K']))
 			// TODO add a step argument here and use negative to go anti-clockwise.
 			err := arm.ArcCenter(c.env['X']+origin.x, c.env['Y']+origin.y, c.env['Z']+origin.z,
-				c.env['I']+origin.x, c.env['J']+origin.y, c.env['K']+origin.z, staubli.Clockwise)
+				c.env['I'], c.env['J'], c.env['K'], staubli.Clockwise)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return
@@ -94,7 +94,7 @@ func (c *Cmd) AddOp(code gcode.Code) {
 			weblog(fmt.Sprintf("Anti-clockwise Arc to %8.2f %8.2f %8.2f, around %8.2f %8.2f %8.2f", c.env['X'], c.env['Y'], c.env['Z'], c.env['I'], c.env['J'], c.env['K']))
 			// TODO add a step argument here and use negative to go anti-clockwise.
 			err := arm.ArcCenter(c.env['X']+origin.x, c.env['Y']+origin.y, c.env['Z']+origin.z,
-				c.env['I']+origin.x, c.env['J']+origin.y, c.env['K']+origin.z, staubli.Anticlockwise)
+				c.env['I'], c.env['J'], c.env['K'], staubli.Anticlockwise)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return

@@ -62,8 +62,8 @@ func (s *Staubli) MoveRel(x, y, z float64) error {
 }
 
 const (
-	Clockwise     = 1
-	Anticlockwise = -1
+	Clockwise     = -1
+	Anticlockwise = 1
 )
 
 // Move the arm to the point (x,y,z) following the path of an arc whose centre is at (i,j,k).

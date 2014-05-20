@@ -81,9 +81,9 @@ WHILE TRUE DO
 		target.y = b
 		target.z = c
 		
-		center.x = d
-		center.y = e
-		center.z = f
+		center.x = x+d
+		center.y = y+e
+		center.z = z+f
 		
 		starta = atan2(y - center.y,x - center.x)
 		
@@ -93,7 +93,10 @@ WHILE TRUE DO
 		radius = sqrt(sqr(x - center.x) + sqr(y - center.y))
 		
 		TYPE "arc ", target.x, ",", target.y, ",", target.z
-		DURATION 0.5 ALWAYS
+		
+		TYPE "       around ", d, ",", e, ",", f
+		
+		TYPE "       which is ", center.x, ",", center.y, ",", center.z
 		
 		angelstep = g
 		

@@ -41,7 +41,7 @@ func (c *Console) Expect() {
 		fmt.Printf(".")
 		n, err := c.w.Read(buf)
 		// This is really shitty. We should probably do a more fancy expect sort of thing.
-		if buf[n-1] == '.' || buf[n-1] == '?' || (buf[n-1] == ' ' && buf[n-2] == '?') {
+		if len(buf) > 0 && ( buf[n-1] == '.' || buf[n-1] == '?' || (buf[n-1] == ' ' && len(buf) > 1 &&  buf[n-2] == '?')) {
 			return
 		}
 		if err != nil {

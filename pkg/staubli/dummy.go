@@ -1,4 +1,3 @@
-// Package staubli provides an interface to control the London Hackspace's Staübli arm.
 package staubli
 
 import (

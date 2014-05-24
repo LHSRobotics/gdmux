@@ -4,7 +4,13 @@ AUTO REAL x, y, z, a, b, c, op
 auto starta, enda
 auto angelstep
 auto angle, radius, zstep
-		
+
+auto pitch, yaw, roll
+
+roll = 180
+pitch = 90
+yaw = 0
+	
 ATTACH (slun, 4) "SERIAL:1"
 
 SELECT ROBOT = 1
@@ -12,7 +18,7 @@ ATTACH ()
 SPEED 40 ALWAYS
 ACCEL (1) 100, 100
 
-SET zeroloc = TRANS(500,0,0,0,90,0)
+SET zeroloc = TRANS(500,0,0,yaw,pitch,roll)
 
 ABOVE
 
@@ -38,7 +44,7 @@ WHILE TRUE DO
 		x = a
 		y = b
 		z = c
-		SET loc = TRANS(x,y,z,0,90,0)
+		SET loc = TRANS(x,y,z,yaw,pitch,roll)
 
 		if (x == 0) and (y == 0) and (z == 0) then
 			TYPE "got zeros, wtf"
@@ -59,7 +65,7 @@ WHILE TRUE DO
 		x = a
 		y = b
 		z = c
-		SET loc = TRANS(x,y,z,0,90,0)
+		SET loc = TRANS(x,y,z,yaw,pitch,roll)
 
 		if (x == 0) and (y == 0) and (z == 0) then
 			TYPE "got zeros, wtf"
@@ -116,7 +122,7 @@ WHILE TRUE DO
 			
 			z = z + zstep
 		
-			SET loc = TRANS(x,y,z,0,90,0)
+			SET loc = TRANS(x,y,z,yaw,pitch,roll)
 			
 			IF INRANGE(loc) == 0 THEN
 				MOVEs loc

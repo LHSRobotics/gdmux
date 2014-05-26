@@ -1,11 +1,7 @@
-AUTO slun
-AUTO REAL x, y, z, a, b, c, op
+auto slun
+auto real x, y, z, a, b, c, op
 
-auto starta, enda
-auto angelstep
-auto angle, radius, zstep
-
-auto pitch, yaw, roll
+auto real pitch, yaw, roll
 
 roll = 180
 pitch = 90
@@ -31,7 +27,7 @@ MOVE zeroloc
 WRITE (slun) "Ready"
 
 WHILE TRUE DO
-	READ (slun) op, a, b, c, d, e, f, g
+	READ (slun) op, x, y, z, a, b, c
 	IF IOSTAT(slun) < 0 THEN
 		TYPE IOSTAT(slun), " ", $ERROR(IOSTAT(slun))
 		TIMER 1 = 0
@@ -41,9 +37,6 @@ WHILE TRUE DO
 	CASE op OF
 	VALUE 0:
 		; quick move
-		x = a
-		y = b
-		z = c
 		SET loc = TRANS(x,y,z,yaw,pitch,roll)
 
 		if (x == 0) and (y == 0) and (z == 0) then
@@ -54,17 +47,14 @@ WHILE TRUE DO
 		TYPE "move ", x, ",", y, ",", z
 		IF INRANGE(loc) == 0 THEN
 			MOVE loc
-			BREAK
 			WRITE (slun) "OK"
 		ELSE
 			TYPE "out of range"
 			WRITE (slun) "out of range"
 		END
+		
 	VALUE 1:
 		; straight line
-		x = a
-		y = b
-		z = c
 		SET loc = TRANS(x,y,z,yaw,pitch,roll)
 
 		if (x == 0) and (y == 0) and (z == 0) then
@@ -75,72 +65,26 @@ WHILE TRUE DO
 		TYPE "line ", x, ",", y, ",", z
 		IF INRANGE(loc) == 0 THEN
 			MOVES loc
-			BREAK
 			WRITE (slun) "OK"
 		ELSE
 			TYPE "out of range"
 			WRITE (slun) "out of range"
 		END
+		
 	VALUE 2:
-		; arc
-		target.x = a
-		target.y = b
-		target.z = c
+		; stop
+		TYPE "break"
+		BREAK
+		decompose val[] = HERE
+		WRITE (slun) "OK", val[0], val[1], val[2]
 		
-		center.x = x+d
-		center.y = y+e
-		center.z = z+f
-		
-		starta = atan2(y - center.y,x - center.x)
-		
-		enda = atan2(target.y - center.y, target.x - center.x)
-		
-		; TODO make sure the radius is the same for both
-		radius = sqrt(sqr(x - center.x) + sqr(y - center.y))
-		
-		TYPE "arc ", target.x, ",", target.y, ",", target.z
-		
-		TYPE "       around ", d, ",", e, ",", f
-		
-		TYPE "       which is ", center.x, ",", center.y, ",", center.z
-		
-		angelstep = g
-		
-		travel = (target.z-z)
-		rate = abs(angelstep/(enda-starta))
-		
-		zstep = travel * rate
-		
-		arclength = abs((enda - starta)/angelstep)
-		
-		FOR i = 0 TO arclength
-			angle = angelstep * i + starta
-			
-			x = radius * COS(angle) + center.x
-			
-			y = radius * SIN(angle) + center.y
-			
-			z = z + zstep
-		
-			SET loc = TRANS(x,y,z,yaw,pitch,roll)
-			
-			IF INRANGE(loc) == 0 THEN
-				MOVEs loc
-			ELSE
-				TYPE "arc part out of range"
-			END
-		END
-		;BREAK
-		WRITE (slun) "OK"
 	VALUE 3:
 		; relative line
 		HERE cur
 
-		SET loc = SHIFT(cur BY a, b, c)
-		TYPE "relative ", a, ",", b, ",", c
+		SET loc = SHIFT(cur BY x, y, z)
 		IF INRANGE(loc) == 0 THEN
 			MOVES loc
-			BREAK
 			WRITE (slun) "OK"
 		ELSE
 			TYPE "out of range"

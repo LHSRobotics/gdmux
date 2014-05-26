@@ -56,6 +56,11 @@ func (c *Cmd) AddOp(code gcode.Code) {
 				weblog(fmt.Sprintf(" → %s\n", err))
 				return
 			}
+			err = arm.Break()
+			if err != nil {
+				weblog(fmt.Sprintf("break → %s\n", err))
+				return
+			}
 			weblog(" → OK\n")
 		})
 	case "G1":
@@ -64,6 +69,11 @@ func (c *Cmd) AddOp(code gcode.Code) {
 			err := arm.MoveStraight(c.env['X']+origin.x, c.env['Y']+origin.y, c.env['Z']+origin.z)
 			if err != nil {
 				weblog(fmt.Sprintf(" → %s\n", err))
+				return
+			}
+			err = arm.Break()
+			if err != nil {
+				weblog(fmt.Sprintf("break → %s\n", err))
 				return
 			}
 			weblog(" → OK\n")

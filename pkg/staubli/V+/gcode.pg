@@ -14,16 +14,16 @@ ATTACH ()
 SPEED 40 ALWAYS
 ACCEL (1) 100, 100
 
-SET zeroloc = TRANS(500,0,0,yaw,pitch,roll)
+SET zeroloc = TRANS(500,0,150,yaw,pitch,roll)
 
 ABOVE
 
 IF NOT(INRANGE(zeroloc) == 0) THEN
 	READY
 	DRIVE 2, 45, 100
+	MOVE zeroloc
 END
 
-MOVE zeroloc
 WRITE (slun) "Ready"
 
 WHILE TRUE DO

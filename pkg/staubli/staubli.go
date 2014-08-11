@@ -16,6 +16,7 @@ type Arm interface {
 	MoveStraight(x, y, z float64) error
 	ArcCenter(x, y, z, i, j, k, direction float64) error
 	Break() error
+	Move6DOF(x, y, z, yaw, pitch, roll float64) error
 }
 
 type point struct {
@@ -33,6 +34,21 @@ type Staubli struct {
 func (s *Staubli) Move(x, y, z float64) error {
 	// we probably need a lock here...
 	_, err := fmt.Fprintf(s.rw, "0 %.3f %.3f %.3f\r\n", x, y, z)
+	if err != nil {
+		return fmt.Errorf("error sending coordinates to arm: %s", err)
+	}
+
+	if r := s.readReply(); !strings.HasPrefix(r, "OK") {
+		return fmt.Errorf("error from arm: %s", r)
+	}
+	return nil
+}
+
+// Move the arm with translation and rotation
+func (s *Staubli) Move6DOF(x, y, z, yaw, pitch, roll float64) error {
+	// we probably need a lock here...
+
+	_, err := fmt.Fprintf(s.rw, "9 %.3f %.3f %.3f %.3f %.3f %.3f\r\n", x, y, z, yaw, pitch, roll)
 	if err != nil {
 		return fmt.Errorf("error sending coordinates to arm: %s", err)
 	}

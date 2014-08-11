@@ -90,6 +90,24 @@ WHILE TRUE DO
 			TYPE "out of range"
 			WRITE (slun) "out of range"
 		END
+
+	VALUE 9:
+		; 6DOF move
+		SET loc = TRANS(x,y,z,a,b,c)
+
+		if (x == 0) and (y == 0) and (z == 0) then
+			TYPE "got zeros, wtf"
+			pause
+		end
+
+		TYPE "move ", x, ",", y, ",", z, ",", a, ",", b, ",", c
+		IF INRANGE(loc) == 0 THEN
+			MOVE loc
+			WRITE (slun) "OK"
+		ELSE
+			TYPE "out of range"
+			WRITE (slun) "out of range"
+		END
 	ANY
 		TYPE "unknown opcode"
 		WRITE (slun) "unknown opcode"

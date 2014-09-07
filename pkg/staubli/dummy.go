@@ -20,6 +20,10 @@ func dummyMove(x, y, z float64) error {
 	return nil
 }
 
+func (s *dummy) Move6DOF(x, y, z, yaw, pitch, roll float64) error {
+	return dummyMove(x, y, z)
+}
+
 func (s *dummy) Move(x, y, z float64) error {
 	return dummyMove(x, y, z)
 }

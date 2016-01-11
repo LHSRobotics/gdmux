@@ -1,8 +1,8 @@
 # gdmux
 
-To run a single gcode file: `gdmux -arm /dev/ttyStaubli -stdin < [gcode file]`
+To run a single gcode file: `gdmux -arm /dev/ttyStaubli [gcode file]`
 
-To run a launch the web interface: `gdmux -arm /dev/ttyStaubli -addr :8002`
+To run a launch the web interface: `gdmux -arm /dev/ttyStaubli -http :8002`
 
 Since this will mainly be running on Linux, we just deal with the serial ports as files.
 It's up to the user to set them up with the correct parameters (baudrate, stop bits, parity, etc.) using `stty`.
